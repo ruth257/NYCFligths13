@@ -1344,6 +1344,13 @@
 <text x="764" y="152" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">model / engines</text>
 <text x="764" y="174" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">seats / speed</text>
 
+<rect x="750" y="300" width="220" height="110" rx="8" fill="#FFFFFF" stroke="#111827" stroke-width="1.5"/>
+<path d="M 750 308 A 8 8 0 0 1 758 300 L 962 300 A 8 8 0 0 1 970 308 L 970 334 L 750 334 Z" fill="#4F46E5"/>
+<text x="860.0" y="322.0" text-anchor="middle" font-family="JetBrains Mono, monospace" font-weight="700" font-size="14" fill="#FFFFFF">TIMEZONES</text>
+<text x="764" y="356" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">tzone   VARCHAR(50)  PK</text>
+<text x="764" y="378" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">tz      INT</text>
+<text x="764" y="400" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">dst     VARCHAR(5)</text>
+
 <rect x="30" y="300" width="250" height="210" rx="8" fill="#FFFFFF" stroke="#111827" stroke-width="1.5"/>
 <path d="M 30 308 A 8 8 0 0 1 38 300 L 272 300 A 8 8 0 0 1 280 308 L 280 334 L 30 334 Z" fill="#4F46E5"/>
 <text x="155.0" y="322.0" text-anchor="middle" font-family="JetBrains Mono, monospace" font-weight="700" font-size="14" fill="#FFFFFF">WEATHER</text>
@@ -1428,10 +1435,20 @@
 <line x1="512.0" y1="110.0" x2="528.0" y2="110.0" stroke="#4F46E5" stroke-width="2"/>
 <line x1="512.0" y1="110.0" x2="528.0" y2="116.0" stroke="#4F46E5" stroke-width="2"/>
 <text x="515.0" y="95.0" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="600" fill="#4F46E5">dest</text>
+
+<path d="M 480 220 L 480 280 L 850 280 L 850 300" fill="none" stroke="#4F46E5" stroke-width="1.75"/>
+<line x1="487.0" y1="234.0" x2="473.0" y2="234.0" stroke="#4F46E5" stroke-width="2"/>
+<line x1="850.0" y1="282.0" x2="856.0" y2="298.0" stroke="#4F46E5" stroke-width="2"/>
+<line x1="850.0" y1="282.0" x2="850.0" y2="298.0" stroke="#4F46E5" stroke-width="2"/>
+<line x1="850.0" y1="282.0" x2="844.0" y2="298.0" stroke="#4F46E5" stroke-width="2"/>
+<rect x="627" y="271.0" width="46" height="18" fill="#F3F4F8" opacity="0.95"/>
+<text x="650.0" y="284.0" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="600" fill="#4F46E5">tzone</text>
         </svg>        <ul style="color:var(--text-gray); font-size:0.85rem; margin:8px 0 0; padding-left:20px; line-height:1.6;">
-          <li><code>timezones</code> is left off this ERD on purpose. It comes from an optional 3NF-demonstration step in the build script (see the normalization section above), not the core 5-table schema &mdash; and with zero foreign keys anywhere, it isn't really part of the relational schema to diagram.</li>
-          <li>The two dashed lines above are real but unenforced: 50,094 flights have a <code>tailnum</code> missing from the FAA <code>planes</code> registry, and 1,556 have no matching <code>weather</code> record.</li>
-          <li>Enforcing those FKs would mean deleting data or inventing rows. Instead, queries use <code>LEFT JOIN</code>, so the gaps show up as <code>NULL</code>s, not lost rows.</li>
+          <li><code>timezones</code> and <code>routes</code> both come from an optional 3NF-demonstration step in the build script (see the normalization section above), not the core 5-table schema.</li>
+          <li><code>airports.tzone</code> now has a real enforced FK to <code>timezones.tzone</code> &mdash; the extraction is genuinely wired into the schema, not a disconnected copy of the same data.</li>
+          <li><code>planes</code> is unenforced only as a <em>constraint</em>, not in practice: 284,170 of 336,776 flights (84.4%) genuinely match a real aircraft by <code>tailnum</code>, and that join actively powers Q1's average seat counts, Q2's route-capacity analysis, and Q4's entire aging-fleet subquery.</li>
+          <li>The gap is concentrated, not random: 2,512 flights have no <code>tailnum</code> at all, and 50,094 have one the FAA registry doesn't recognize &mdash; almost all from two carriers with genuinely spotty coverage (Envoy Air, 3.8% matched; American, 31.1% matched). Enforcing the FK would mean rejecting those flights outright.</li>
+          <li><code>weather</code> is a smaller, simpler gap: 1,556 flights have no matching observation. Both unenforced relationships are compensated with <code>LEFT JOIN</code>, so the gaps show up as <code>NULL</code>s, not lost rows.</li>
         </ul>
       </div>
       <details class="section" open>
@@ -2916,7 +2933,7 @@
             <ul style="margin:8px 0 0; padding-left:20px; line-height:1.6;">
               <li>These two tables aren't a separate issue &mdash; they're the fix for two of the 3NF violations documented in the normalization analysis below.</li>
               <li>Both come from an optional extra step in the build script &mdash; not part of the core 5-table schema.</li>
-              <li><code>timezones</code> has no foreign key at all, so it's correctly shown fully separate.</li>
+              <li><code>timezones</code> now has a real enforced FK from <code>airports.tzone</code> &mdash; it's genuinely connected, not just visually isolated. This screenshot predates that fix; a freshly re-exported diagram will show the link.</li>
               <li><code>routes</code> links to <code>airports</code>, but nothing links back to <code>routes</code> &mdash; so it sits at the edge instead of the center.</li>
             </ul>
           </div>
@@ -2948,7 +2965,7 @@
                 <td><code>airports</code></td>
                 <td><code>faa &rarr; tzone &rarr; (tz,dst)</code></td>
                 <td><code>tz</code>/<code>dst</code> depend on the timezone, not the airport &mdash; every airport sharing a <code>tzone</code> has the same values.</td>
-                <td><code>timezones</code> table &mdash; illustrative only, no FK connects it back to <code>airports</code></td>
+                <td><code>timezones</code> table, with a real enforced FK back to <code>airports</code> (<code>airports.tzone &rarr; timezones.tzone</code>)</td>
               </tr>
               <tr>
                 <td><code>flights</code></td>
@@ -2958,7 +2975,7 @@
               </tr>
             </tbody>
           </table>
-          <p style="color:var(--text-mid); font-size:0.9rem; margin-top:14px;">These two extractions <em>demonstrate</em> the fix rather than apply it: the build script deliberately keeps <code>flights.distance</code> and <code>airports.(tz,dst)</code> in place afterward (dropping them is one comment away, but left as a documented choice for analytical convenience), so the live schema stays exactly as normalized or denormalized as it was before &mdash; only <code>routes</code>, with its enforced FKs to <code>airports</code>, is genuinely wired into the schema; <code>timezones</code> exists purely to show what the fix would look like.</p>
+          <p style="color:var(--text-mid); font-size:0.9rem; margin-top:14px;">Both extractions are genuinely wired into the schema, not just demonstrated: <code>routes</code> carries real enforced FKs back to <code>airports</code>, and <code>airports.tzone</code> now has a real enforced FK to <code>timezones.tzone</code> as well. What's still deliberately incomplete is the second half of the fix &mdash; the build script keeps <code>flights.distance</code> and <code>airports.(tz,dst)</code> in place afterward instead of dropping them (one comment away, but left as a documented choice for analytical convenience), so the redundant data still lives in both places even though the reference is now real.</p>
         </div>
       </details>
 
