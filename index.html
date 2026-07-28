@@ -3118,6 +3118,7 @@
         <div class="section-title">Insights &amp; Answer to Research Question</div>
         <div class="content">
           <div class="insight-item"><b class="mark">&#9670;</b>&nbsp;ExpressJet at EWR and Endeavor at JFK top the delay ranking on small regional aircraft &mdash; a genuine gate-turnover signal, not a capacity story.</div>
+          <div class="insight-item"><b class="mark">&#9670;</b>&nbsp;Since the Q4 aging-fleet test already rules out aircraft age as a meaningful driver of delay (effects under 2 minutes either direction), the gap seen here more plausibly comes from carrier-specific scheduling padding, hub congestion, or regional-carrier turnaround practices &mdash; an open question this data can't settle on its own.</div>
           <div class="callout warn"><strong>Data quality issue found in source files:</strong> The <code>planes</code> table is a separate aircraft registry, built by matching tail numbers against FAA records &mdash; it doesn't cover every aircraft that appears in <code>flights</code>. 94% of Envoy Air's tail numbers were never matched into the registry, so its average is based on a small, unrepresentative slice of its real fleet.</div>
         </div>
       </div>
@@ -3337,6 +3338,7 @@ margins <span class="kw">AS</span> (
         <div class="content">
           <div class="insight-item"><b class="mark">&#9670;</b>&nbsp;US Airways beats ExpressJet by 17.5 minutes on EWR&rarr;CLT &mdash; the largest head-to-head margin in the network, and a real basis for a gate-assignment reward rather than an alphabetical accident.</div>
           <div class="insight-item"><b class="mark">&#9670;</b>&nbsp;Delta wins three of the six competitive routes shown (ATL, MCO from both JFK and LGA), while ExpressJet and JetBlue are consistently the slower half of their pairings &mdash; a pattern, not a one-off result.</div>
+          <div class="insight-item"><b class="mark">&#9670;</b>&nbsp;The two carriers losing these head-to-heads are also the second- and third-highest-volume operators in Q1's own delay table (ExpressJet 43,939 flights, JetBlue 42,076) &mdash; with ExpressJet flying the smallest average aircraft of the three (56 seats vs. United's 177) &mdash; a more plausible driver of a competitive gap than route difficulty alone, since rival carriers fly the identical routes.</div>
         </div>
       </div>
     </div>
