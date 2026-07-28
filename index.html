@@ -1417,15 +1417,12 @@
             <div class="cap">Database &rarr; Reverse Engineer, generated directly from the live schema &mdash; <strong>click to zoom</strong></div>
           </div>
           <div class="callout" style="margin-top:12px; background:var(--gold-bg); border:1px solid var(--gold-border); color:var(--gold);">
-            <strong>Why <code>routes</code> and <code>timezones</code> sit apart from the main cluster:</strong>
-            both come from the <em>optional</em> Section 7 extraction in the build script &mdash; a
-            demonstration of decomposing the two genuine transitive dependencies found during
-            normalization (distance depends on the route; tz/dst depend on the timezone), not part
-            of the five-table operational schema.
-            <code>timezones</code> has no foreign key anywhere, so Workbench correctly draws it fully
-            isolated. <code>routes</code> does have real FKs to <code>airports</code>, but nothing else
-            references <code>routes</code> back, so it's a dead-end branch that the auto-layout pushes
-            to the edge rather than into the central cluster.
+            <strong>Why <code>routes</code> and <code>timezones</code> sit apart:</strong>
+            <ul style="margin:8px 0 0; padding-left:20px;">
+              <li>Both come from an optional extra step in the build script &mdash; not part of the core 5-table schema.</li>
+              <li><code>timezones</code> has no foreign key at all, so it's correctly shown fully separate.</li>
+              <li><code>routes</code> links to <code>airports</code>, but nothing links back to <code>routes</code> &mdash; so it sits at the edge instead of the center.</li>
+            </ul>
           </div>
         </div>
       </details>
@@ -1586,7 +1583,7 @@
         <div class="section-title">Insights &amp; Answer to Research Question</div>
         <div class="content">
           <div class="insight-item"><b class="mark">&#9670;</b>&nbsp;ExpressJet at EWR and Endeavor at JFK top the delay ranking on small regional aircraft &mdash; a genuine gate-turnover signal, not a capacity story.</div>
-          <div class="callout warn"><strong>Known caveat:</strong> Envoy Air's "15 seats" and American's rows average over a small, likely unrepresentative sample &mdash; 94% of Envoy's fleet records are missing from <code>planes</code>. Reported, not hidden.</div>
+          <div class="callout warn"><strong>Data quality issue found in source files:</strong> The <code>planes</code> table is a separate aircraft registry, built by matching tail numbers against FAA records &mdash; it doesn't cover every aircraft that appears in <code>flights</code>. 94% of Envoy Air's tail numbers were never matched into the registry, so its average is based on a small, unrepresentative slice of its real fleet.</div>
         </div>
       </div>
     </div>
