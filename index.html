@@ -1286,7 +1286,7 @@
   </div>
   <div class="nav-right">
     <span class="demo-badge">REPLAY</span>
-    <span class="sql-studio" id="studioTrigger" style="cursor:pointer; text-decoration:underline; text-decoration-style:dotted;">&#9654; SQL Studio</span>
+    <span class="sql-studio sql-studio-trigger" id="studioTrigger" style="cursor:pointer; text-decoration:underline; text-decoration-style:dotted;">&#9654; SQL Studio</span>
   </div>
 </nav>
 
@@ -1500,7 +1500,7 @@
   <section id="q3" style="margin-top:60px;">
     <div class="eyebrow">Question 3 &middot; Query Analysis Matrix (5 Mandatory Query Techniques)</div>
     <h1 class="page-title">SQL Query Analysis Matrix &amp; Research Questions</h1>
-    <div class="callout-intro">Click any row below to jump to its full SQL code, live query results, and insights</div>
+    <div class="callout-intro">Click any row below to jump to its full SQL code, live query results, and insights &mdash; or <span class="sql-studio-trigger" style="cursor:pointer; text-decoration:underline; text-decoration-style:dotted;">run them yourself in SQL Studio &#9654;</span></div>
 
     <div class="matrix">
       <table>
@@ -2161,7 +2161,6 @@ margins <span class="kw">AS</span> (
   // each query -- no separate copy of the SQL or data is maintained, so
   // there's no risk of the studio drifting from the real content below.
   const studioOverlay = document.getElementById('studioOverlay');
-  const studioTrigger = document.getElementById('studioTrigger');
   const studioClose = document.getElementById('studioClose');
   const studioTabs = document.querySelectorAll('.studio-tab');
   const studioQuerySlot = document.getElementById('studioQuery');
@@ -2203,12 +2202,12 @@ margins <span class="kw">AS</span> (
     }, 450);
   }
 
-  if (studioTrigger) {
-    studioTrigger.addEventListener('click', () => {
+  document.querySelectorAll('.sql-studio-trigger').forEach(trigger => {
+    trigger.addEventListener('click', () => {
       studioOverlay.classList.add('open');
       loadStudioTab('bk-join');
     });
-  }
+  });
   if (studioClose) {
     studioClose.addEventListener('click', () => studioOverlay.classList.remove('open'));
   }
@@ -2272,15 +2271,19 @@ margins <span class="kw">AS</span> (
         setTimeout(() => { packBtn.innerHTML = '&#9992;&#65039; ארזת לבד?'; }, 1800);
         return;
       }
-      const suitcase = confetti.shapeFromText({ text: '\u{1F9F3}', scalar: 2.4 });
-      const plane    = confetti.shapeFromText({ text: '\u{2708}\u{FE0F}', scalar: 2 });
+      // shapeFromText's own scalar only sets the bitmap's render resolution
+      // (higher = crisper); the piece's actual on-screen size comes from the
+      // fire()-level scalar below, which was left at the confetti default
+      // (1 = a 10px speck) -- much too small for an emoji to read as anything.
+      const suitcase = confetti.shapeFromText({ text: '\u{1F9F3}', scalar: 7 });
+      const plane    = confetti.shapeFromText({ text: '\u{2708}\u{FE0F}', scalar: 6 });
       // confetti.create() with useWorker:false explicitly, rather than the
       // plain confetti() global -- that global lazily creates its own
       // instance hardcoded to useWorker:true on first call, which ignores
       // any useWorker passed in the per-fire options.
       const myConfetti = confetti.create(null, { useWorker: false, resize: true });
       myConfetti({
-        particleCount: 60, spread: 75, startVelocity: 42, gravity: 0.9, scalar: 1,
+        particleCount: 40, spread: 75, startVelocity: 42, gravity: 0.9, scalar: 4,
         origin: { y: 0.85 }, shapes: [suitcase, plane]
       });
       packBtn.textContent = 'בטח שכן! ✓';
