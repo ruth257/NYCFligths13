@@ -1429,7 +1429,7 @@
 <line x1="512.0" y1="110.0" x2="528.0" y2="116.0" stroke="#4F46E5" stroke-width="2"/>
 <text x="515.0" y="95.0" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="600" fill="#4F46E5">dest</text>
         </svg>        <ul style="color:var(--text-gray); font-size:0.85rem; margin:8px 0 0; padding-left:20px; line-height:1.6;">
-          <li><code>timezones</code> is left off this ERD on purpose &mdash; it's in the live database (see the reverse-engineered diagram below), but it has zero foreign keys, so it isn't really part of the relational schema.</li>
+          <li><code>timezones</code> is left off this ERD on purpose. It comes from an optional 3NF-demonstration step in the build script (see the normalization section above), not the core 5-table schema &mdash; and with zero foreign keys anywhere, it isn't really part of the relational schema to diagram.</li>
           <li>The two dashed lines above are real but unenforced: 50,094 flights have a <code>tailnum</code> missing from the FAA <code>planes</code> registry, and 1,556 have no matching <code>weather</code> record.</li>
           <li>Enforcing those FKs would mean deleting data or inventing rows. Instead, queries use <code>LEFT JOIN</code>, so the gaps show up as <code>NULL</code>s, not lost rows.</li>
         </ul>
