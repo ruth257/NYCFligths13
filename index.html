@@ -3020,7 +3020,7 @@
               </tr>
             </tbody>
           </table>
-          <p style="color:var(--text-mid); font-size:0.9rem; margin-top:14px;"><code>routes</code> has a foreign key to <code>airports</code>, and <code>airports.tzone</code> has one to <code>timezones.tzone</code> &mdash; both are properly connected, not just copies of the data sitting nearby. The redundant columns (<code>flights.distance</code>, <code>airports.tz</code>, <code>airports.dst</code>) are still kept, though: dropping them would finish the normalization, but the build script leaves them in on purpose, since they're convenient for direct queries.</p>
+          <p style="color:var(--text-mid); font-size:0.9rem; margin-top:14px;"><code>routes</code> has a foreign key to <code>airports</code>, and <code>airports.tzone</code> has one to <code>timezones.tzone</code>. The redundant columns (<code>flights.distance</code>, <code>airports.tz</code>, <code>airports.dst</code>) are still kept, though: dropping them would finish the normalization, but the build script leaves them in on purpose, since they're convenient for direct queries.</p>
         </div>
       </details>
 
