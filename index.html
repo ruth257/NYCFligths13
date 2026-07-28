@@ -1433,6 +1433,9 @@
         </svg>        <p style="color:var(--text-gray); font-size:0.85rem; margin-top:8px;">
           <code>timezones</code> exists in the live database (visible in the reverse-engineered diagram below) but is deliberately left off this ERD &mdash; with zero foreign keys anywhere, it has no relationships to diagram, so it isn't really part of the relational schema.
         </p>
+        <p style="color:var(--text-gray); font-size:0.85rem; margin-top:8px;">
+          The two dashed relationships above (<code>flights.tailnum &rarr; planes</code>, <code>flights.(origin,time_hour) &rarr; weather</code>) are drawn but deliberately left unenforced as real foreign keys: 50,094 flights carry tail numbers with no matching row in the FAA-sourced <code>planes</code> registry, and 1,556 flights have no matching <code>weather</code> observation. Enforcing either FK would mean deleting that data or inventing rows to satisfy it &mdash; instead the relationship is documented as logical and drawn here, and the queries compensate with <code>LEFT JOIN</code> so the gaps show up as <code>NULL</code>s rather than lost rows.
+        </p>
       </div>
       <details class="section" open>
         <summary><span class="tri">&#9654;</span> Supplement &mdash; MySQL Workbench Reverse-Engineered EER</summary>
@@ -2930,25 +2933,25 @@
             <thead><tr><th>Normal Form</th><th>Status</th><th>Basis</th></tr></thead>
             <tbody>
               <tr><td>1NF</td><td>Yes</td><td>Every column holds a single atomic value &mdash; no repeating groups or multi-valued fields.</td></tr>
-              <tr><td>2NF</td><td>Yes</td><td>Every table uses a single-column primary key, so partial dependency on part of a composite key can't occur.</td></tr>
+              <tr><td>2NF</td><td>Yes</td><td>Tables with a single-column key trivially satisfy 2NF. The two composite keys in this schema (<code>weather</code>: origin+time_hour; <code>routes</code>: origin+dest) also satisfy it &mdash; every non-key column depends on the full combination, not on either column alone (temperature depends on both the station <em>and</em> the hour), so there's no partial dependency to violate.</td></tr>
               <tr><td>3NF</td><td>Partial &mdash; 3 violations found</td><td>Some non-key columns depend on another non-key column instead of depending directly on the primary key.</td></tr>
             </tbody>
           </table>
           <div class="section-title" style="margin-top:18px;">The Three 3NF Violations</div>
           <table class="results">
-            <thead><tr><th>Table</th><th>Dependency Chain</th><th>Why It's a Violation</th><th>Resolution</th></tr></thead>
+            <thead><tr><th>Table</th><th>Dependency Chain</th><th>Why It's a Violation</th><th>Demonstrated Fix</th></tr></thead>
             <tbody>
               <tr>
                 <td><code>flights</code></td>
                 <td><code>flight_id &rarr; (origin,dest) &rarr; distance</code></td>
                 <td><code>distance</code> depends on the route, not the individual flight &mdash; every flight between the same two airports has the same value.</td>
-                <td>Extracted to <code>routes</code></td>
+                <td><code>routes</code> table, with real enforced FKs back to <code>airports</code></td>
               </tr>
               <tr>
                 <td><code>airports</code></td>
                 <td><code>faa &rarr; tzone &rarr; (tz,dst)</code></td>
                 <td><code>tz</code>/<code>dst</code> depend on the timezone, not the airport &mdash; every airport sharing a <code>tzone</code> has the same values.</td>
-                <td>Extracted to <code>timezones</code></td>
+                <td><code>timezones</code> table &mdash; illustrative only, no FK connects it back to <code>airports</code></td>
               </tr>
               <tr>
                 <td><code>flights</code></td>
@@ -2958,7 +2961,7 @@
               </tr>
             </tbody>
           </table>
-          <p style="color:var(--text-mid); font-size:0.9rem; margin-top:14px;">Two of these three violations &mdash; the route/distance dependency and the timezone/tz-dst dependency &mdash; are resolved in the ERD supplement above through the optional <code>routes</code> and <code>timezones</code> extraction tables.</p>
+          <p style="color:var(--text-mid); font-size:0.9rem; margin-top:14px;">These two extractions <em>demonstrate</em> the fix rather than apply it: the build script deliberately keeps <code>flights.distance</code> and <code>airports.(tz,dst)</code> in place afterward (dropping them is one comment away, but left as a documented choice for analytical convenience), so the live schema stays exactly as normalized or denormalized as it was before &mdash; only <code>routes</code>, with its enforced FKs to <code>airports</code>, is genuinely wired into the schema; <code>timezones</code> exists purely to show what the fix would look like.</p>
         </div>
       </details>
 
@@ -3024,7 +3027,7 @@
       </details>
     </div>
     <p style="text-align:center; color:var(--text-gray); font-size:0.85rem;">
-      Build script: <a href="./nycflights13_full.sql" style="color:var(--indigo); font-weight:600;">nycflights13_full.sql</a> &mdash; copy-paste runnable, tested end to end (~15s)
+      Build script: <a href="./nycflights13_full.sql" style="color:var(--indigo); font-weight:600;">nycflights13_full.sql</a> &mdash; too large to paste into a Workbench query tab, so the "copy-paste runnable" requirement is met by running it as a file instead (<code>File &rarr; Run SQL Script</code> in Workbench, or <code>mysql -u root &lt; nycflights13_full.sql</code> from the command line) &mdash; tested end to end (~15s)
     </p>
   </section>
 
@@ -3091,6 +3094,7 @@
 <span class="kw">LEFT JOIN</span> planes p <span class="kw">ON</span> f.tailnum = p.tailnum
 <span class="kw">GROUP BY</span> a.name, f.origin <span class="kw">HAVING</span> total_flights &gt; 10000
 <span class="kw">ORDER BY</span> avg_delay <span class="kw">DESC</span>;</div>
+          <p style="color:var(--text-gray); font-size:0.85rem; margin-top:8px;">Delay metric: <code>AVG(CASE WHEN dep_delay &gt; 0 THEN dep_delay ELSE 0 END)</code> &mdash; early departures and cancelled flights both count as 0, so this reads as "average minutes late," never negative. Other sections on this page define delay differently; see each one's own note before comparing numbers across sections.</p>
         </div>
       </details>
       <details class="section" open>
@@ -3183,27 +3187,37 @@
     <span class="kw">WHEN</span> (month=12 <span class="kw">AND</span> day <span class="kw">BETWEEN</span> 23 <span class="kw">AND</span> 31) <span class="kw">THEN</span> 'Christmas/NY'
     <span class="kw">WHEN</span> month=11 <span class="kw">AND</span> day <span class="kw">BETWEEN</span> 27 <span class="kw">AND</span> 30 <span class="kw">THEN</span> 'Thanksgiving'
     <span class="kw">WHEN</span> month=9  <span class="kw">AND</span> day <span class="kw">BETWEEN</span> 1  <span class="kw">AND</span> 2  <span class="kw">THEN</span> 'Labor Day'
-    <span class="kw">ELSE</span> 'Non-holiday' <span class="kw">END</span> AS period
+    <span class="kw">WHEN</span> month=7  <span class="kw">AND</span> day <span class="kw">BETWEEN</span> 3  <span class="kw">AND</span> 5  <span class="kw">THEN</span> 'July 4th'
+    <span class="kw">ELSE</span> 'Non-holiday' <span class="kw">END</span> AS period,
+    <span class="cm">-- window function: grand-mean dep_delay attached to every row before
+    -- grouping, so each period below can be measured against the overall baseline</span>
+    <span class="kw">AVG</span>(dep_delay) <span class="kw">OVER</span> () <span class="kw">AS</span> overall_avg_delay
   <span class="kw">FROM</span> flights
 )
-<span class="kw">SELECT</span> period, <span class="kw">COUNT</span>(*), <span class="kw">ROUND</span>(<span class="kw">AVG</span>(dep_delay),2) avg_delay
+<span class="kw">SELECT</span> period, <span class="kw">COUNT</span>(*) <span class="kw">AS</span> flights,
+  <span class="kw">ROUND</span>(<span class="kw">AVG</span>(dep_delay),2) <span class="kw">AS</span> avg_delay,
+  <span class="kw">ROUND</span>(<span class="kw">AVG</span>(overall_avg_delay),2) <span class="kw">AS</span> overall_avg,
+  <span class="kw">ROUND</span>(<span class="kw">AVG</span>(dep_delay &lt;= 0)*100,2) <span class="kw">AS</span> on_time_pct
 <span class="kw">FROM</span> tagged <span class="kw">GROUP BY</span> period <span class="kw">ORDER BY</span> avg_delay <span class="kw">DESC</span>;</div>
+          <p style="color:var(--text-gray); font-size:0.85rem; margin-top:8px;">Delay metric: plain <code>AVG(dep_delay)</code> &mdash; cancelled flights (NULL) are excluded rather than zeroed, and early departures stay negative and pull the average down. This differs from Q1/Q5's metric (which zero both early departures and cancelled flights), so don't compare these averages directly across sections.</p>
         </div>
       </details>
       <details class="section" open>
         <summary><span class="tri">&#9654;</span> Live Query Results</summary>
         <div class="content">
           <table class="results">
-            <thead><tr><th>Period</th><th class="num">Flights</th><th class="num">Avg Delay</th><th class="num">On-time %</th></tr></thead>
+            <thead><tr><th>Period</th><th class="num">Flights</th><th class="num">Avg Delay</th><th class="num">Overall Avg</th><th class="num">On-time %</th></tr></thead>
             <tbody>
-              <tr><td>Labor Day</td><td class="num">1,647</td><td class="num">30.64</td><td class="num">58.99%</td></tr>
-              <tr><td>July 4th</td><td class="num">4,281</td><td class="num">16.41</td><td class="num">57.99%</td></tr>
-              <tr><td>Christmas/NY</td><td class="num">8,652</td><td class="num">13.62</td><td class="num">52.42%</td></tr>
-              <tr><td>Non-holiday</td><td class="num">315,667</td><td class="num">12.53</td><td class="num">61.15%</td></tr>
-              <tr><td><strong>Thanksgiving</strong></td><td class="num">3,166</td><td class="num"><strong>7.25</strong></td><td class="num">65.63%</td></tr>
+              <tr><td>Labor Day</td><td class="num">1,647</td><td class="num">30.64</td><td class="num">12.64</td><td class="num">58.99%</td></tr>
+              <tr><td>Christmas/NY</td><td class="num">7,810</td><td class="num">13.85</td><td class="num">12.64</td><td class="num">51.82%</td></tr>
+              <tr><td>Non-holiday</td><td class="num">321,611</td><td class="num">12.58</td><td class="num">12.64</td><td class="num">61.11%</td></tr>
+              <tr><td>July 4th</td><td class="num">2,542</td><td class="num">12.20</td><td class="num">12.64</td><td class="num">59.07%</td></tr>
+              <tr><td><strong>Thanksgiving</strong></td><td class="num">3,166</td><td class="num"><strong>7.25</strong></td><td class="num">12.64</td><td class="num">65.63%</td></tr>
             </tbody>
           </table>
-          <div class="shot-img"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAXsAAAB8CAYAAACITBAHAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAACFfSURBVHhe7Z1faBvZ9ce/+oUulP6y0F/61LfYmjUiFXmJoVLeQoItxQtqFrRPPy+BRHIIm0gCQwLrJweyYLDGKSGxspB13iLYVD/iarzY7FusheQlaIPqzNjpSwt9SEM3bbd0Sef3MH9053ruaOR/0mjOBwTWmTt35p577rnnnpHnRt68+V5/772fgCAIghhc/osXEARBEINH5M2b7/X/+79HvJwgCIIYIGxn/5vf/IY/tqf87ne/2/drEARBEO44nP3777/PH98zlpaW8Mknn/BiImD8+c9/xi9/+UteTHCQng4O0rU/KGdPEAQRAsjZEwRBhABy9gRBECEgnM5ek5FMytB4OdFf+O0nJY9IJGJ8/JT3W++gsN/t7VR/p+PEgTAYzn4/jGk/6gwDfvXmt1xHFOTTTZRVHbpaRgK7rHs35xKDDWsb/WInXdzHYDj7aAHr6wVEeTkx+GgbaCKOEbbzyR6I/SaANtYfzl6TkUzmkU+aS/FIBHmFOWYt0SNJyFp7NpPzEUQieSj8jGuXz8OqxiGXimjYF3dDgzxZRKNRhBSJICkrkJPMPUFBPpKErHR53wMPrzdN0B/by2lysp2K8a0vBXmpiAYqSLP9KrQHZ5pnOc/3W4f78hlB+cG1vZqMJGuzUJC3vnu0wxWRvbvZpdf4E9FN/Y7TXNoNzX18eTawC9xs0OFD/LSZs4183rAxTnd5xWiLo74OOnHg2RcK8nY95rX48ebFmzff619++aX+t7/9Td9PvvzyS17URi3rCST0smp+r+d0IKfX9bqeQ06vs+USZV1Vy3oC0HPWAUuu1/UcI1fLCR25uq5z8nZ5D/gy9ZxZF/N3t/dtfQ8wf/rTn3iRE0dbRf3Bl+Ng9SsqY8GWYe3DxR6E9lPP6eDrsP5m+rGeY/q0Ax31xMLYVj3H3deO7FdUXmCXQjsWsYP63e7XbUzxf/vAW9cCG/SyARG8bfC6q+d0sH976cRRMYOwL1S9nGDuly3vVR9Df0T2AJDIYsJaE6UyyKGJDWUDTStqsyKIRgsqACTKmE45q4C2gSYjj05kkajUoHDyHZHKIFepQQGg1CrIZczKur3vMCHqD74cuOgnXQGaG96Rqx+8+p2VSzEj188THUEcFaTNaDC1uAi3qnaEoL2pTA6VmqEhpdZEeTrl3Q43ROU1D7t0s2NRB+ykfruMe7uF42u3eNmgHxvwg6U7KYYE+zd86oTHrS+UZVThovMu6B9nLyJRhqrr0O3PHg64rkghk6ugpiioVXLoaIt9c98BQJORlKrIqqaurAetu0VtdUjXdSKFRV2HrmdQi0ScacHd4NXe1DTKzRoUKKg1zUG/63Yw7LddetXv1e5ux1eQ8NLJAdKfzl6poZLIYiI1gnijiDm/IyzqLK8tV9HIZZCKjiDeqGLZjFS05aq/wcPNwKnpMprpNJrlaffO2ul9DxqW3kT9wZeDM5rx3T+dSGWQY/rdN9Z9aTLysmY6fRXlhEe02y3C9kYxkW2ilq+hmZ0wHgB22w6RvXP9IcSyY9HTx93UL2y3j/G1EzrZYLd0isp5/OjEC9unTCALQT0+76l/nL35kMFY3gH19QKiSGFRLaOZbj+U8H4w5SwvFeOoL6YMeT2OomTIJ1vxzpFjtICZnLH8sh98RCeQTSSQZUfBntz3AOHQmyToD67c8gRm4m09+uofXzj7vfODef6+ABQlsw8lVLMPUBA5wG6IFjzbG53IolkBZuyLddsOkb172KWrHYvYQf3o3G7X8bVrRD5hB7C2MdfijwrooBM3XPsiisIDZz15hR9vnrX20QNanw8Zegp/n/z3EOD9MKzP6fLB327YVz3tdTv6xY53eB/7quuDZoc68EP/RPY9wflTpvbH/edRylwR8RmviIfYH7rrJxaF+WldJI2dR3U9xr0dO9eLP/a7fif9Mb4Oqs2C63Rcte0cesUx0RX0Oll/kJ4ODtK1P0Ie2RMEQYQDcvYEQRAhgPagJQiCCAGUsycIgggBlMYhCIIIAeTsCYIgQgA5e4IgiBDg6ex/+OEH/Otf/8J//vMf/tDBYb53ek//n4EgCCJkeDp7APj000/x17/+Fe/eveMP7ZxeOXDHJgLGx3vDAsI/CvJ8nzJ7w7q9t0PJt98T4tzUwvwMVOdw/zFpt42Vd3irZhf6DDf8f6eym8NwMldEfSKSB4OOzn5rawvXr1/Hmzdv9tbh9wr2daPmC4oGyqf0AMNRp1FhhUre+Ld+U9fr3BvElHwEs8jZL8KKFtaZV8DqqOeARExynBNolBpQt9qnotychawBSj5ty9VyE2mRMXapTyJn60rX11GIapAnmdcr1+MoTrpNjBrkZLtP9DqQTsrQhPLg0NHZw3T4V65cwR/+8Af8+OOP/OE9w33LMgBoYc7epouRd9xurMPsGy1gXS2jOesWXR7QlmkDQLSwvu0d9EqtibLq/t5uTU5iNqZifTrGHzLQZMxWcsxbHweA1CLar+VR0WrEMRJ1vrs9OpFFQrBpy670SWxHuFmJilaDeZ9+KoNcowVVKA8Ovpw9APzlL3/B9evX8fLlS/z73//mD+8JjuiuHkfRenlzo4nYAyv6gTkjG/uPxt2iokYRrYzub5OA6AjiZqe5Xz+Kwkx79yAoNVRyM3vzqtuBRUGt0mi/kpdJl2lyEpN4sC0yZVHmisBevtO8b7D2J60h42abjC062Z0+w0l7dygj5RVFYX0GLfs10VVkH4heusbuWyAhZu9jIJIHA9/OHgD+8Y9/4Pr16/j+++/3J8IXbVnGbHgQncgi0WhB9bvdWDeIrr9fW6YNNMwyWi2jmc5DgYblagMN6x3xkrlZMrscHsSo3iaKwrpu7nzV7epwh/oMJdYOYzp0vY54cZJLmakoJxrtYJI/V82iak+sEoqNOEaiIjl/fv/SlbP/2c9+hps3b+L999/HT37yE/7w7vDcsmwf0TbQTMQgeV5/gLdMOwiiE8gmmtjQLGfH6DhRhspslDG4UT1LCplcAy0+hLdskRNvowt9EhJiCQCqjNmmFQRGUVhvPzfZRrSAdYdOzT4RyQOCb2dvOXpJkvDee+/xh/cGjy3LLJxbDe52uzEzFWS9Q9vj+vuyZdrAYkyOs9ZI0pZR9RMFDXBUr8l5xrEoqFUSiElWEGGWWa6iER8xbFGTkbSfOe1Qn2FFybefsVm64rcKZXXo0DWLBnmyCFjbQ3aU9zleO1X985//1E+dOqVfuHBB/+Mf/6j/+OOPfBHfOHaqUst6AtBhf3J6Xdf1eq4tS+Ryxo4tfFl+pyiuDs+dXvi6kNDLTEHX67dP1ssJZ3nCQC0nGJ1CNzZRUvVywl3PNo6+MsonXAsOAPWci450Xdfreo63Yd2yVeZ71/oMMdw4t3XtkDM65HXN9JXDHkXygOD5IrQffvgBV65cwc2bN/Hzn/8chw4dchzvhsC/CE2TkZwEHtASmSCIANIxjbMXjn4Q6I8t0wiCIHaGp7P/6U9/il/84hehd/QAkFrUmd9JEwRBBAtHGufvf/87f3zPWF1dDXYahyAIIsB45uz3kqWlJXz40f/yYiJg/M9//xf++vcevhgvIJCeDg7StT880zgEQRDEYEDOniAIIgSQsycIgggB/e/stxYwdmoBr3j5btiPOgmCIPqYHjr7Tdw5dQhHDh/CkX1yvGtXmLrJwe872/R92Ozfw4cwdnvTKOSQn8SdLa4SrKA00P3k0r7Vqe168sChZxuXekPLCkqM7Vl29ur2SUZmfq6s8Cdz509hraM8GPTQ2Q/j0jfv8Pr5PE7wh/aAtSuHMIeL+1I3sZ1t+t5s4dijd3j99h1ev/09jl2bxJ2tTdy5UEXmuSl/FMdnF9oOyhiMZ7HUrnagcG3f6hSOnAMevjV08vXlYfboNrbpWVRv6Llo6/T12ye4NAQcvfzE/G58Hp4HTozwrzLbxJ1TZwHLdh8BH59awCuhPDj00Nlz8JE3/91cCZRWre8rKLlGhobxz428xNcFazOHTdy5UMKzpyWcOHwIY3ILALBypT3Dt+slumW7vgGcuYv5M9YXCdJo+5DNcMzhtI5efrJvk38/4Na+tcdN3Hh+F6cZmQhXPQvqJTqwtYC5+xcxvW1yVaE+vYi0ZbtnMvjkaQubQnlw6B9n35FhXLp+EUuPzWXXag1L52dwachZ6tXtk5jCAy5CGsalL+ZxYnQez96+MwbL0xLUD61Z+iKWbgZrlu4X3PXNsbWMGrIYHxrGpW9moB43J9njVWS+uIqjfPnQsIL6/W/xmaUPj6DDl54Jhnv42CM1tiaXgM+nBZNsE6odREqQRq3vInkwCJCzN2fT+zWsAVh7fA+ffDjOFdjEylff4tm1D0xnYkbzbsut0Xl8as3SXIRJ+MWPvldQYpz62hVrKfwSN0a/xWeyW840TDDphufzeHHOLRfsR89Em3HM2+kaK4XIHBZG9TDOfZ5FzZ6AP8BnT+OQhkRy/vz+JVjOHuNIn7+H+uoK6veZJZWN+RyAGTwnRufx7JswR4/7SSd9r6B0eBbScyNniq0FzH1nTbLDuPTNS9z4btY1FRdKhiaQcY0WO+mZELM9hegd1QMYuoqvHbqOYdhLHhB67+w3W3hm/c3kwF4p1bac4XRhHi/OncULr84SEbAcW6DZWsAY6+gBYGgEx56W8FsrVbG1jFrAoqO9xQhe5uxfKjH62FrAWAB/8dEXrE6102G8jblF9UJdG8/68NEEN6mK5P1Nj5w98xOmc03c+OIqjg5dxd3Pm3aebWoj7p5aGZpAZvTXyKS6nFOHrmL6vJHHsx7QEvuHMVk789FjtyXMP5/Hi3NMzp55OPnq9sl2isIjfx1U3Np3+tZLZL6y0jNOffjFrd5QMxxjbKyEY48snZpOulOgaP8U9gPUPnrZfk4ikgeE4L0IbWsBYxeAu7SE7Qn00il/kJ4ODtK1P3oU2e+cNbmEY9fJ0RMEQXRD4Jz96VvvmN9vEwRBEH6gzUsIgiBCwIHm7MnZEwRB9IbApXEIgiCI7iFnTxAEEQLI2RMEQYSA/nP2moxkUobGy/uRIN0rQRChprfOXskjEom0P3mFLyGmk6PtdHwP0JarQLyFyUgESZm50l5eW8kjwtalyUhGkmAv11M0GUm7D7n7Yvq3rR8FebbPrXMc9XD6HCgU5B22wenDawy46TM0euuGvbMxJR9pj78dnN9P9MzZa3ISkTRQ13Xo5qeOGjxM3Um0gPX1AqK8/ABRW0A2EwMSOcSrk/vjgFOLqMeLmDMVoy1XgfIDFHrZcBsN8mQVWdXsw3ocxUlzYCh5R/+uO244x/T7utEWtYV43ZLVES/ukz57iCYnEYmkUWGFSg2w262i3Jx1b7dInyHQ287YvY0p+QhmkUPCEnR5fr/RI2evYbkKlNVFpBhparH9fTnfnkHzSjtalvMRRCJ5KEz0bAwis3xShgYN8mQRjUYRUiSCZD6PZDKPfNKqT4Ns/23eEVsHE6Fur9tCQa0Sh7HRTQzTM3EULY/M4hb5spG/JiMZyZuTnAY5af3dJjVdRnNWhgYFc8U4ZqyB7lY3f8/cNW39Oa6wR0gxe2Aotea2/vUktYhFu7CEmD3CBodoYR26Wm47D/DtVtFqxDHiMpEL9RkCve0ZXehKk5OYjalYn2Y2iuni/H6kN85eW0ZVYNQAgEYRrYw5g9ZzqMyajtGWM0avyZgsxu1ZvB5vQUUUhQdlJBJlqLpudFijidgDs770JGD9bdYdLazbKwy9bjpu17pNlBoquUz7PlKLqCNtTx5mIeSlFmasetUsqpMytOgI4g2jLm25ingOqCkwBjti4DdKQ7SAmXgRk8lZoG61XVC3qC0Q6G9XRFFYn0FLMicWqYrsgwKiUFCrNFC05MykalBB2msprC2jiiwmRPYxcFjBRw0Z177ppE+T0OnNi53bmCYnMYkH3GqUw+P8fqU3zh4AEi5OzSJRxrRl8Uy06JBbREcQRwVpM1plVwcOEmbHSDEk2L+t42yUnK4AzQ3DKQvqVmoV5DLOK7UjcBNtA03G6CJSEY1GCypSyOSa2NAAtRVHZjqGZk0xysdHXFNTqekygGy7/cK6BW2BQH+7RMmnzTSEinKiwaxumGW0WkYzba0mUli05K5LYQV5e9IIC1EU1nXoegY1/rmHjUifFmHUm4jd2JiG5WoDjaLEjKsiJP45i/D8/qU3zj46gnijimVXo+4Wq2MzqEV2mKLQZCQlJvdsL7VFdWvYaCYQ42eraAEPslXMLTMyc3VhR9pm5CbFgJaqoNaMQYpOINusQVFbiHMTiCdudQvbsg9oMmab1gQSRWFdkHOOTiCbMCY3J/xSWEE+MouYauZYQ0cKmVwDLXv5KGCbPsOuNy+6tTFr4mXGT6IM1X4+2On8/qU3zh4pTJeBouR0zEp+Z446L2umY1ZRZgeBFen6wYr2zdRKAx51eyzhooUZoFg0zo+OIN5oP1x1lJvIArOzaGYnEEUUE1mgVsP2CUSER92ubdkP+Huw03MpZHIVzNoPEZi0nZJvpyBYuSYjGdBBtBs0Oc9MjgpqFTOIcDzL8dBnSPXmSbc25tC1B6LzA0KPnL2RV1bLzXYaIhJBGkwO3C/REcBackUkVLPmL1WiBczkjDRHcq7DZiVmTlwy72OyFTeiYUHd2nIVyE4IlnApLNZz7b/VMprpdhvth7zREaABZE2vHB0BKs2Y6wTijqBuUVv2Be4epCqy5kPE1KKKbNVaCrflkGJM+SLi5jMIY1Jy5qVdc60BRpOT7bSAmXc3TMxqcxqouzsSkT7DoLeu2Scb2+35vYZehLYDlHwEtYzOPJknCILob3oW2QcXBbVKDt2k1gmCIHoNOfuuSWHR9edxBEEQ/QttXkIQBBECDjRnvycbjhM9hTZ39gfp6eAgXfuD0jgEQRAhgJw9QRBECCBnTxAEEQIGz9lvLWDs1AJe8XIRncp3Ok4QBBEAeuPstxYwdvgQxm5vOmW9dKq9vn5gWUHp8CEcsT5XVrYfd+iVK3/4JO5smYdWp2y5wzZc5K9un2TqEF27H+H0YY4Fvn3bEemtk/5DiovNtOFtUgRfTtQHwaA3zh4ARi/i2FeT/aOsoav4+purOMrLCW9Wa8Cjd3j99h1ev32JG9/N2n1qOOSzWOLPwUU8fGud8wSXhszBeQ62/OvLw0ZRgfzo5Sfm+cbn4XnghLG5QN/iqo/NFo7Z+vs9jl3zGhNuehPrP7QIbAaiPnBBXM6lDwJC75w9Yvj0ehyfyS6RiCPamcKaJTu1gDtX2jNraZU/sc2KWzm3ei3YyJ4td7yEZ2YRZzRpzeqbuHOKvZcVlAI24++KM3cxf8b6okJ9GodkDoCjl5/g9fN5nGCKi1h73MSN53dx2qfcwdYC5u5fxDQzqPsRV3049CdBGmUP+sBD/2HFy2Zc+8AFv+WCRA+dvWGoD3GWc9orKB0v2dHOs8+b+Nhamj4tQf3QnFUfXcTSTcFSzLWcR70OnOXYDndEk4+siWoYl65fxNJjs67VGpbOzwRqxt89xoR35HAN6bfug8zJPXzsWGKvoH7/W3x2nJ+gRXIna3IJ+Hzax3X7nK1l1JDFuNB2eL1ZdKv/QcafzewcUR/0P7119gBOF+bxgnXaWxt4MTqPT81o5WgqixP3a0YUzsgxHLOdMBtxj8kt93Je9bJw5ZzHmIj/3D3guw3jvs9k8IlZ19rje/jkw3H+zAFnGJe+eYfXbzOod1zVjGPeXgazaQtmefx8Hi/OWSsvkdwkIFF9Z1ZQOl5F5gtRKlGkN3Sp/zDQwWZ2jFcf9D89d/YYuoq7H1Xx244vkxbDRtxfF5g9I/eSrQWMHa8i83x7xA+MI33+HuqrK6jfv4i020QRCsaRPv8tVN8BjyBtMTSBzGgTKj+QXOSDEdWvoHR4FtJzvzlggd661n8IcLGZvUHUB/1L7509gKOXZ4BrZm58aATHnpbwW3Pp9Uqp4tn5zO4Hs996h0Zw7GkVK9ZDRqVq5+wx2l5iO+TWCuXcWbwIvOPpjle3p5joZgX1+7+G5BVkr04xz1CWUXsahzRkTJZz1rK4o9w6fwCi+q0FjLk5+q0FjLHPlVz1tgP9DzwdbMYNXtciBH0QFPrC2QPjmH90sf3383m8OGekS05ci+Phrb1Ii/itdxzzj+J2zm9qI25E8ENXMf2rEk6YaRxbbjE0gczor5FJhWukHf0ATH70LPCo7bRe3T5pPOB+auittGqk1aw+OHK8hGOPjBzz6VsvkfnqA1NeRcZ8wCaSA5u4cyFYUb2bPoygwZljds0FC/Tmpf+wIrYZ9z5ww7WcoA+CAr0Iba/YWsDYBeDugP98k1465Q/S08FBuvZHn0T2wWdNLuHY9cF29ARBBBdy9nvE6VvvmN87EwRB9Be0eQlBEEQIONCcPTl7giCI3kBpHIIgiBBAzp4gCCIEkLMnCIIIAeTs3dBkJJMyNF5OEAQRUHrj7DUZyUgEkbzzhThKPoLIQTjZnThz656ZD3f7IUVBntWLrRSRHICSt+VJ2eoFj/IDhYI8a3ucXbX1wcPqJ4+2dsKity7paGOsDkVwfRVwXffG2QNAIodccxZ2P2gyZpsJJLhi+0K0gPX1AqK8vBOJMlRdh67r0NUymmly+FBqQN3Uia6ibPWpUJ5HJA3UTT2uF8xeEJUfIDQ5iUgkjQorVFuI2+2uI16cdG23kk/b+lHLTaQtwwuB3rpGYGNCHbrg2lcB13XvnD1iyGSB6rKhLWWuiHg22z7siHiShlI1GclkHvmkIc8rGmT7b7fzzNnbjOTlvCljInujU7nr+CFawLpaRnPWqx7j/to2pSDfzTWCQGoRiynri4pWI46RqFiu1Jooq4uwD1kIyg8S0cI6dLXsDGgc7ZYQc412FNQqOWTMctGJLBLNDSPiDIHeusXdxjx06ELnvgqernvo7AGpMIN4cQ6KJmO2Wcb0hHVEQV5qYcaOorOoTprLqUYTsQc69HoOlfQkYP09K0ODgrxUtCMlx+zdKKKV0aHrTiOIFtbNmVqHXo+jOCee7bcRHUG80YIqrCeKwkwOlVo7CqvkZmAFs4ODNenWkHHol5crqFUaKErtpbAzuOLLhwxtGVVkMdHJPhi7Mwi53hx0sjGTbTr0S3B13VNnD6SQyVWQloqIzzBpFW0DTVSQtiJlqYiG1TEJczBIMSTYv63zEmVMs7N3pWZE94zcAbsSSFcAj9neE1E9qQxy5j0otQpyVmgxUERRWNeh6xnUHCsXN3nOXl4bqTA2d+pWPiwoyEtVZB/sIL0Yar254WVjuyW4uu6xswdS02Uk0F5e2bD5cX17RL4naDKSUhVZtW0YrqtoEdoGmokYJM96jAmtpjiXkYNJCplcA61t4ZJAHp1ANtHExrYBIyg/sCjIR2YRU9f9rfosu+PlodObD0Q2JtShX4Kn6547e0QLWOcdeXQE8UYR3WRUgO3nactVNHIZ70nCWh1Y5fnjQsyUkbUi8agnNV1GM51GszztfS8BRJPzTHSjoFZJICaJ5MbEN2sd0JZRNfOe7uWt7wOMJiPp5ug1GUn7FyNWwGAeWq6iER9B1EP/4UVkY2IdOnUtJui67r2zdyWFRfPXLvZDT18/lXSeJxXjqLefqGwnWsBMvAjJvMZkK+4d2TfaZSORWcRU3Xhg06me6ASyiQSyHZOxwSM6AiY/mgbqhtMSyVOLKrJVyUzPVZE1H6SJyg8Smpw0U5KGreQVKzBw5pjdfn6ZWqwDLnYdBr11i8jGRDp0w62vgq5rehHaQaDJSE4CD3byc0+CIIg9oE8j+8FCmeMeQBMEQRww5OwPgNSime4hCILoEbR5CUEQRAg40Jz9QG84HhJoc2d/kJ4ODtK1PyiNQxAEEQLI2RMEQYQAcvYEQRAhoL+c/dYCxk4t4BUv75a9qocgCGJA6IGz38SdU4dw5PD2z5jc4gv3hk6TRafjoWIFJbYfr6xsP87ranWq3ee3NzvLB4BXt09us/ftujJtix0Tth44PR8+iTtb3LlEG1db6kKHfs53678+pgfOfhiXvnmH12/f4fXzeZwYncezt8b3rwsxvnBvGLqKr7+5iqO83KLT8TCxWgMemf359iVufDdrDyDDwZ3FkqP8FI6cAx5afX552Fs+IBy9/MTUkfF5eB44MeLyYpXNFo7Z+vw9jl2bZBzSRVs/r98+waUh56mEiact+dCh6HwPWw8CPXD2nVm50p49S6uGzBkZmTOyGWHfcSlvszpll3fUYUWbXCR15NQCXlmR+9YCxg5PYc2ubAWlw1NYY4+Lru9Wr13PAHHmLubPWF9UqE/jkMwBdPTyE2NCZ4qvPW7ixvO7OM3IvOQDydYC5u5fxLTbhObQpwRp1HmY6MxubUl4voetB4H+c/ZPS1A/NGfPRxexdNNwko7I6FEcn8nmEkpQHjAd7jng4dsnuIQFTF2L27P1w1+1sIkVlI6X2pEU55gwdBXT5++hbjnw1RqWzmecRuB6/Q71DhxWaq6G9FuXQWKzgvr9b/HZcX5yFMkHkzW5BHw+7aEnk61l1JDFuO1Q7uFjUz+DlubaOzrZUicddjrfr633H/3n7Efn8ak1ew7H2k6SjZTP3QO+2zCcuqj80xJOHG9h2uqQoREcwz18bEbqp2/dxemtDbxgz3fh9IcXsfTYmFjWHjdxozDuLOB2fR/1DhZWai6DulceFHAuo5/P48U5a+Ukkg8YXlG9gxWUjleR+cJKF45j3k4/8OkdwonIlvzqUHQ+urT1/qL/nL0bWwsYO15F5nkXkfLoPB5+3sTH9kMUq6MzqB8+hCOHp7C22cIz7rRtnJnGje9qWMMK6t+xUZYHfuodSMaRPv8tVLeAyY2hCWRGm1D5ASOSDwD+ovoVlA7PQnouyClTesc/QlvyqUPh+V3aeh8QDGcPAKNtR/tKqfpypsOXn+AhzhrLta0FlG5vmk7/JW6MNqEOZ/DJ0ypWtnUkyzDGP2qifqWGFx9N+Hsoe8ZPvYPBq9tTTHSzgvr9X0MSBq3jSJ+/hzlr+by1jNrTOKQhkdxxcvBxi+r550JbCxhzc/SrU8zzoAHVz57gYUsiHTr6QHx+d7befwTD2Q9dxfSvSjhhpnGmNuKdI3uT07d+j2PXPsCYAuDaB2Ye7gPUPnqAS0PjmH8Ub+fnjpdcJ5GjqSxe3IePpbeFv3oHgaMfgMlvngUetZ3Uq9snjbY/NfqutAqcvvUSma/MfjheRcZ8ECaSDw6buHOhc1RvBDLOnPHY7U1gOIYX59r2dOzRoOln7xDakk8dis73svUgQC9CY1mdwpHHGby+xeXld8t+1dsD6KVT/iA9HRyka38EI7LfR9aYn00eOQc83COHvF/1EgRB7ITQO/vTt6yn8+/weg9/SrVf9RIEQeyE/wfVmAP+/QsmngAAAABJRU5ErkJggg==" alt="Q3 holiday result set"><div class="cap">MySQL Workbench &mdash; live result set, all 6 periods</div></div>
+          <div class="shot" style="text-align:left;">
+            <strong>Screenshot pending re-capture in MySQL Workbench.</strong> The query was corrected to add the missing <code>July 4th</code> period, the <code>AVG(dep_delay) OVER ()</code> window-function baseline column, and the <code>On-time %</code> calculation &mdash; all three are now reflected in the code and results table above, run against the live database. The old screenshot (which didn't match either the old code or the old table) has been removed rather than left showing stale numbers.
+          </div>
         </div>
       </details>
       <div class="always-section">
@@ -3223,18 +3237,19 @@
         <summary><span class="tri">&#9654;</span> SQL Query Statement</summary>
         <div class="content">
           <div class="codebox">
-<span class="cm">-- holds carrier fixed: each airline's own pre-2000 fleet vs its own 2000+ fleet</span>
-<span class="kw">WITH</span> carrier_age_buckets <span class="kw">AS</span> (
-  <span class="kw">SELECT</span> f.carrier,
-    <span class="kw">CASE WHEN</span> p.year &lt; 2000 <span class="kw">THEN</span> 'pre_2000' <span class="kw">ELSE</span> 'y2000_plus' <span class="kw">END</span> <span class="kw">AS</span> age_bucket,
-    f.dep_delay
-  <span class="kw">FROM</span> flights f
-  <span class="kw">INNER JOIN</span> planes p <span class="kw">ON</span> f.tailnum = p.tailnum
-  <span class="kw">WHERE</span> p.year <span class="kw">IS NOT NULL AND</span> f.dep_delay <span class="kw">IS NOT NULL</span>
-),
-carrier_summary <span class="kw">AS</span> (
+<span class="cm">-- holds carrier fixed: each airline's own pre-2000 fleet vs its own 2000+ fleet
+-- carrier_age_buckets is a derived-table subquery (nested SELECT in FROM), not a
+-- second CTE -- this is the genuine subquery technique, distinct from the CTE below</span>
+<span class="kw">WITH</span> carrier_summary <span class="kw">AS</span> (
   <span class="kw">SELECT</span> carrier, age_bucket, <span class="kw">COUNT</span>(*) <span class="kw">AS</span> n_flights, <span class="kw">ROUND</span>(<span class="kw">AVG</span>(dep_delay),2) <span class="kw">AS</span> avg_delay
-  <span class="kw">FROM</span> carrier_age_buckets
+  <span class="kw">FROM</span> (
+    <span class="kw">SELECT</span> f.carrier,
+      <span class="kw">CASE WHEN</span> p.year &lt; 2000 <span class="kw">THEN</span> 'pre_2000' <span class="kw">ELSE</span> 'y2000_plus' <span class="kw">END</span> <span class="kw">AS</span> age_bucket,
+      f.dep_delay
+    <span class="kw">FROM</span> flights f
+    <span class="kw">INNER JOIN</span> planes p <span class="kw">ON</span> f.tailnum = p.tailnum
+    <span class="kw">WHERE</span> p.year <span class="kw">IS NOT NULL AND</span> f.dep_delay <span class="kw">IS NOT NULL</span>
+  ) <span class="kw">AS</span> carrier_age_buckets
   <span class="kw">GROUP BY</span> carrier, age_bucket
   <span class="kw">HAVING COUNT</span>(*) &gt;= 500
 )
@@ -3247,6 +3262,7 @@ carrier_summary <span class="kw">AS</span> (
 <span class="kw">INNER JOIN</span> airlines a <span class="kw">ON</span> old.carrier = a.carrier
 <span class="kw">WHERE</span> old.age_bucket = 'pre_2000' <span class="kw">AND</span> new.age_bucket = 'y2000_plus'
 <span class="kw">ORDER BY</span> age_penalty_minutes <span class="kw">DESC</span>;</div>
+          <p style="color:var(--text-gray); font-size:0.85rem; margin-top:8px;">Delay metric: plain <code>AVG(dep_delay)</code> with cancelled flights explicitly filtered out (<code>WHERE dep_delay IS NOT NULL</code>) &mdash; the same family as Q3's metric, but not the same as Q1/Q5's zeroed-early-departures metric.</p>
         </div>
       </details>
       <details class="section" open>
@@ -3314,6 +3330,7 @@ margins <span class="kw">AS</span> (
 <span class="kw">WHERE</span> r.route_efficiency_rank &lt;= 2
 <span class="kw">ORDER BY</span> margin <span class="kw">DESC</span>, r.origin, r.dest, r.route_efficiency_rank
 <span class="kw">LIMIT</span> 12;</div>
+          <p style="color:var(--text-gray); font-size:0.85rem; margin-top:8px;">Delay metric: same as Q1 &mdash; <code>AVG(CASE WHEN dep_delay &gt; 0 THEN dep_delay ELSE 0 END)</code>, zeroing early departures and cancelled flights. This is the one section directly comparable to Q1's numbers.</p>
         </div>
       </details>
       <details class="section" open>
@@ -3350,6 +3367,7 @@ margins <span class="kw">AS</span> (
     <h1 class="page-title">v_daily_airport_performance</h1>
     <div class="breakdown">
       <div class="bk-top"><span class="qid">Isolates weather-driven delay from carrier scheduling</span></div>
+      <p style="color:var(--text-mid); font-size:0.9rem; margin:-4px 0 14px;">Airport operations teams need to know whether a bad day at a hub was caused by weather or by an airline's own scheduling and turnaround choices &mdash; in practice the two get blamed on each other constantly. This view answers that by joining each day's real flight delays to that day's actual recorded weather at the same airport, so a slow Tuesday at EWR can be checked against whether EWR genuinely had bad weather that Tuesday, rather than assumed from reputation.</p>
       <details class="section" open>
         <summary><span class="tri">&#9654;</span> View Definition</summary>
         <div class="content">
@@ -3366,6 +3384,7 @@ margins <span class="kw">AS</span> (
 <span class="kw">INNER JOIN</span> airports ap <span class="kw">ON</span> f.origin=ap.faa
 <span class="kw">LEFT JOIN</span> daily_weather dw <span class="kw">ON</span> f.origin=dw.origin <span class="kw">AND</span> f.year=dw.year <span class="kw">AND</span> f.month=dw.month <span class="kw">AND</span> f.day=dw.day
 <span class="kw">GROUP BY</span> f.origin, ap.name, f.year, f.month, f.day;</div>
+          <p style="color:var(--text-gray); font-size:0.85rem; margin-top:8px;">Delay metric: <code>AVG(COALESCE(dep_delay,0))</code> &mdash; cancelled flights count as 0, but unlike Q1/Q5, early departures keep their negative value and pull the average down. A third, distinct definition from the ones used elsewhere on this page.</p>
         </div>
       </details>
       <details class="section" open>
@@ -3397,6 +3416,8 @@ margins <span class="kw">AS</span> (
     <div class="eyebrow">Question 5 &middot; Stored Procedure</div>
     <h1 class="page-title">sp_get_carrier_delay_report</h1>
     <div class="breakdown">
+      <div class="bk-top"><span class="qid">On-demand delay report for one carrier over a month range</span></div>
+      <p style="color:var(--text-mid); font-size:0.9rem; margin:-4px 0 14px;">Built for an operations analyst who needs a carrier's delay-by-route breakdown on demand &mdash; for a monthly review, a specific complaint, or a schedule-change proposal &mdash; without writing SQL each time. A stored procedure fits this better than a one-off query: the carrier and month range become parameters instead of hardcoded values, the same report can be re-run by anyone who knows the three inputs, and a DBA can grant <code>EXECUTE</code> on just this procedure without handing out direct <code>SELECT</code> access to the underlying <code>flights</code> table.</p>
       <details class="section" open>
         <summary><span class="tri">&#9654;</span> Procedure Definition</summary>
         <div class="content">
@@ -3411,6 +3432,7 @@ margins <span class="kw">AS</span> (
   <span class="kw">WHERE</span> f.carrier=p_carrier <span class="kw">AND</span> f.month <span class="kw">BETWEEN</span> p_start_month <span class="kw">AND</span> p_end_month
   <span class="kw">GROUP BY</span> f.carrier, a.name, f.origin <span class="kw">ORDER BY</span> total_flights <span class="kw">DESC</span>;
 <span class="kw">END</span>// <span class="kw">DELIMITER</span> ;</div>
+          <p style="color:var(--text-gray); font-size:0.85rem; margin-top:8px;">Delay metric: same as the view above &mdash; <code>AVG(COALESCE(dep_delay,0))</code>, which is <em>not</em> the same metric as Q1 (see the note below comparing this procedure's DL output to Q1's DL figure).</p>
         </div>
       </details>
       <details class="section" open>
@@ -3445,7 +3467,7 @@ margins <span class="kw">AS</span> (
                 <tr><td>EWR</td><td class="num">1,118</td><td class="num">12.31</td><td class="num">200</td><td class="num">372</td></tr>
               </tbody>
             </table>
-            <div class="insight-item"><b class="mark">&#9670;</b>&nbsp;Delta's summer numbers run slightly hotter than its full-year figures from Q1 (LGA 12.43 &rarr; 12.38 is close, but the worst single delay jumps to 898 minutes) &mdash; consistent with the July&ndash;August spike already found in Q3.</div>
+            <div class="insight-item"><b class="mark">&#9670;</b>&nbsp;Delta's summer numbers run slightly hotter than its full-year figures from Q1 (LGA 12.43 &rarr; 12.38 is close, but the worst single delay jumps to 898 minutes) &mdash; consistent with the July&ndash;August spike already found in Q3. Caveat: this procedure and Q1 use different delay metrics (<code>COALESCE</code>-to-zero here vs. zeroed-early-departures in Q1), so the 12.43 vs. 12.38 closeness is suggestive, not a precise apples-to-apples match.</div>
           </div>
 
           <div class="proc-option" id="proc-b6" style="display:none;">
