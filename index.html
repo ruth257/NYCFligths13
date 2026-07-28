@@ -1309,9 +1309,7 @@
     <div class="breakdown">
       <div class="bk-top"><span class="qid">Source: Rdatasets / nycflights13</span><span class="qid">336,776 rows</span></div>
       <p style="color:var(--text-mid); margin-bottom:20px;">
-        A <strong>fact constellation</strong>, not a simple star: <code>weather</code> is itself a
-        second fact table, and <code>airports</code> is a role-playing dimension referenced twice
-        by <code>flights</code> &mdash; once as <code>origin</code>, once as <code>dest</code>.
+        nycflights13 &mdash; five related tables covering every flight departing New York City's three airports (EWR, JFK, LGA) in 2013, sourced from the US Bureau of Transportation Statistics (BTS) and packaged as an R dataset. The schema satisfies 1NF and 2NF, but not fully 3NF &mdash; three real transitive dependencies exist.
       </p>
       <div class="erd-svg-wrap">
         <svg viewBox="0 0 1010 650" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:auto; display:block; font-size:11px;">
@@ -1430,12 +1428,11 @@
 <line x1="512.0" y1="110.0" x2="528.0" y2="110.0" stroke="#4F46E5" stroke-width="2"/>
 <line x1="512.0" y1="110.0" x2="528.0" y2="116.0" stroke="#4F46E5" stroke-width="2"/>
 <text x="515.0" y="95.0" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="600" fill="#4F46E5">dest</text>
-        </svg>        <p style="color:var(--text-gray); font-size:0.85rem; margin-top:8px;">
-          <code>timezones</code> exists in the live database (visible in the reverse-engineered diagram below) but is deliberately left off this ERD &mdash; with zero foreign keys anywhere, it has no relationships to diagram, so it isn't really part of the relational schema.
-        </p>
-        <p style="color:var(--text-gray); font-size:0.85rem; margin-top:8px;">
-          The two dashed relationships above (<code>flights.tailnum &rarr; planes</code>, <code>flights.(origin,time_hour) &rarr; weather</code>) are drawn but deliberately left unenforced as real foreign keys: 50,094 flights carry tail numbers with no matching row in the FAA-sourced <code>planes</code> registry, and 1,556 flights have no matching <code>weather</code> observation. Enforcing either FK would mean deleting that data or inventing rows to satisfy it &mdash; instead the relationship is documented as logical and drawn here, and the queries compensate with <code>LEFT JOIN</code> so the gaps show up as <code>NULL</code>s rather than lost rows.
-        </p>
+        </svg>        <ul style="color:var(--text-gray); font-size:0.85rem; margin:8px 0 0; padding-left:20px; line-height:1.6;">
+          <li><code>timezones</code> is left off this ERD on purpose &mdash; it's in the live database (see the reverse-engineered diagram below), but it has zero foreign keys, so it isn't really part of the relational schema.</li>
+          <li>The two dashed lines above are real but unenforced: 50,094 flights have a <code>tailnum</code> missing from the FAA <code>planes</code> registry, and 1,556 have no matching <code>weather</code> record.</li>
+          <li>Enforcing those FKs would mean deleting data or inventing rows. Instead, queries use <code>LEFT JOIN</code>, so the gaps show up as <code>NULL</code>s, not lost rows.</li>
+        </ul>
       </div>
       <details class="section" open>
         <summary><span class="tri">&#9654;</span> Supplement &mdash; MySQL Workbench Reverse-Engineered EER</summary>
