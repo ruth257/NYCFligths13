@@ -3020,7 +3020,7 @@
               </tr>
             </tbody>
           </table>
-          <p style="color:var(--text-mid); font-size:0.9rem; margin-top:14px;">Both extractions are genuinely wired into the schema, not just demonstrated: <code>routes</code> carries real enforced FKs back to <code>airports</code>, and <code>airports.tzone</code> now has a real enforced FK to <code>timezones.tzone</code> as well. What's still deliberately incomplete is the second half of the fix &mdash; the build script keeps <code>flights.distance</code> and <code>airports.(tz,dst)</code> in place afterward instead of dropping them (one comment away, but left as a documented choice for analytical convenience), so the redundant data still lives in both places even though the reference is now real.</p>
+          <p style="color:var(--text-mid); font-size:0.9rem; margin-top:14px;"><code>routes</code> has a foreign key to <code>airports</code>, and <code>airports.tzone</code> has one to <code>timezones.tzone</code> &mdash; both are properly connected, not just copies of the data sitting nearby. The redundant columns (<code>flights.distance</code>, <code>airports.tz</code>, <code>airports.dst</code>) are still kept, though: dropping them would finish the normalization, but the build script leaves them in on purpose, since they're convenient for direct queries.</p>
         </div>
       </details>
 
