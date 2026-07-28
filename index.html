@@ -3348,6 +3348,19 @@ margins <span class="kw">AS</span> (
       <details class="section" open>
         <summary><span class="tri">&#9654;</span> Live Query Results</summary>
         <div class="content">
+          <div class="section-title">Raw Output &mdash; the <code>ranked</code> CTE, before the final pivot</div>
+          <table class="results">
+            <thead><tr><th>Route</th><th>Airline</th><th class="num">Flights</th><th class="num">Avg Delay</th><th class="num">Rank</th><th class="num">Carriers</th></tr></thead>
+            <tbody>
+              <tr><td>JFK&rarr;LAX</td><td>Delta</td><td class="num">2,501</td><td class="num">7.8</td><td class="num"><strong>1</strong></td><td class="num">5</td></tr>
+              <tr><td>JFK&rarr;LAX</td><td>United</td><td class="num">2,059</td><td class="num">10.2</td><td class="num">2</td><td class="num">5</td></tr>
+              <tr><td>JFK&rarr;LAX</td><td>JetBlue</td><td class="num">1,688</td><td class="num">11.0</td><td class="num">3</td><td class="num">5</td></tr>
+              <tr><td>JFK&rarr;LAX</td><td>American</td><td class="num">3,217</td><td class="num">12.2</td><td class="num">4</td><td class="num">5</td></tr>
+              <tr><td>JFK&rarr;LAX</td><td>Virgin America</td><td class="num">1,797</td><td class="num">12.9</td><td class="num">5</td><td class="num">5</td></tr>
+            </tbody>
+          </table>
+          <p style="color:var(--text-gray); font-size:0.85rem; margin:8px 0 20px;">This is exactly what <code>RANK() OVER (PARTITION BY origin, dest ORDER BY avg_delay_minutes ASC)</code> produces &mdash; a rank per carrier within each route, shown here for a 5-carrier route (JFK&rarr;LAX) so the ranking is unambiguous. The table below pivots rank 1 and rank 2 into a Winner/Runner-up view for readability, which is why the rank numbers themselves don't appear there.</p>
+          <div class="section-title">Pivoted Leaderboard &mdash; rank 1 vs. rank 2 per route</div>
           <table class="results">
             <thead><tr><th>Route</th><th>Winner</th><th class="num">Delay</th><th>Runner-up</th><th class="num">Delay</th><th class="num">Margin</th></tr></thead>
             <tbody>
