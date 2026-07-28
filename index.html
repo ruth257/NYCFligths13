@@ -1444,11 +1444,11 @@
 <rect x="627" y="271.0" width="46" height="18" fill="#F3F4F8" opacity="0.95"/>
 <text x="650.0" y="284.0" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="600" fill="#4F46E5">tzone</text>
         </svg>        <ul style="color:var(--text-gray); font-size:0.85rem; margin:8px 0 0; padding-left:20px; line-height:1.6;">
-          <li><code>timezones</code> and <code>routes</code> both come from an optional 3NF-demonstration step in the build script (see the normalization section above), not the core 5-table schema.</li>
-          <li><code>airports.tzone</code> now has a real enforced FK to <code>timezones.tzone</code> &mdash; the extraction is genuinely wired into the schema, not a disconnected copy of the same data.</li>
-          <li><code>planes</code> is unenforced only as a <em>constraint</em>, not in practice: 284,170 of 336,776 flights (84.4%) genuinely match a real aircraft by <code>tailnum</code>, and that join actively powers Q1's average seat counts, Q2's route-capacity analysis, and Q4's entire aging-fleet subquery.</li>
-          <li>The gap is concentrated, not random: 2,512 flights have no <code>tailnum</code> at all, and 50,094 have one the FAA registry doesn't recognize &mdash; almost all from two carriers with genuinely spotty coverage (Envoy Air, 3.8% matched; American, 31.1% matched). Enforcing the FK would mean rejecting those flights outright.</li>
-          <li><code>weather</code> is a smaller, simpler gap: 1,556 flights have no matching observation. Both unenforced relationships are compensated with <code>LEFT JOIN</code>, so the gaps show up as <code>NULL</code>s, not lost rows.</li>
+          <li><code>timezones</code> and <code>routes</code> come from an optional extra step in the build script (see the normalization section below) &mdash; they're not part of the core 5-table schema.</li>
+          <li><code>airports.tzone</code> has an enforced foreign key to <code>timezones.tzone</code>.</li>
+          <li><code>planes</code> has no foreign key, but the relationship is real: 284,170 of 336,776 flights (84.4%) match a real aircraft by <code>tailnum</code>. This join is used in Q1's average seat counts, Q2's route-capacity analysis, and Q4's aging-fleet subquery.</li>
+          <li>The unmatched flights aren't random: 2,512 have no <code>tailnum</code> at all, and 50,094 have a <code>tailnum</code> the FAA registry doesn't recognize. Most of this comes from two carriers with incomplete registry data (Envoy Air: 3.8% matched; American: 31.1% matched).</li>
+          <li><code>weather</code> has a smaller gap: 1,556 flights have no matching record. Both <code>planes</code> and <code>weather</code> use <code>LEFT JOIN</code>, so unmatched rows show <code>NULL</code> instead of being dropped.</li>
         </ul>
       </div>
       <details class="section" open>
