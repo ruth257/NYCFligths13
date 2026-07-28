@@ -1303,7 +1303,7 @@
     <a href="./nycflights13_full.sql" class="billboard">
       <span class="bb-plane" aria-hidden="true">&#9992;&#65039;</span>
       &#11015;&#65039; Download the Build Script
-      <span class="bb-sub">nycflights13_full.sql &middot; copy-paste runnable &middot; tested end to end (~15s)</span>
+      <span class="bb-sub">nycflights13_full.sql &middot; run as a file in Workbench or the CLI &middot; tested end to end (~15s)</span>
     </a>
 
     <div class="breakdown">
@@ -2978,7 +2978,7 @@
             <ul style="margin:8px 0 0; padding-left:20px; line-height:1.6;">
               <li>These two tables aren't a separate issue &mdash; they're the fix for two of the 3NF violations documented in the normalization analysis below.</li>
               <li>Both come from an optional extra step in the build script &mdash; not part of the core 5-table schema.</li>
-              <li><code>timezones</code> now has a real enforced FK from <code>airports.tzone</code> &mdash; genuinely connected, not just visually isolated, as the reverse-engineered diagram above now shows.</li>
+              <li><code>timezones</code> has an enforced FK from <code>airports.tzone</code>, so it's genuinely connected, as the diagram above shows.</li>
               <li><code>routes</code> links to <code>airports</code>, but nothing links back to <code>routes</code> &mdash; so it sits at the edge instead of the center.</li>
             </ul>
           </div>
@@ -3182,7 +3182,7 @@
         <div class="content">
           <div class="insight-item"><b class="mark">&#9670;</b>&nbsp;ExpressJet at EWR and Endeavor at JFK top the delay ranking on small regional aircraft &mdash; a genuine gate-turnover signal, not a capacity story.</div>
           <div class="insight-item"><b class="mark">&#9670;</b>&nbsp;Since the Q4 aging-fleet test already rules out aircraft age as a meaningful driver of delay (effects under 2 minutes either direction), the gap seen here more plausibly comes from carrier-specific scheduling padding, hub congestion, or regional-carrier turnaround practices &mdash; an open question this data can't settle on its own.</div>
-          <div class="callout warn"><strong>Data quality issue found in source files:</strong> The <code>planes</code> table is a separate aircraft registry, built by matching tail numbers against FAA records &mdash; it doesn't cover every aircraft that appears in <code>flights</code>. 94% of Envoy Air's tail numbers were never matched into the registry, so its average is based on a small, unrepresentative slice of its real fleet.</div>
+          <div class="callout warn"><strong>Data quality issue found in source files:</strong> The <code>planes</code> table is a separate aircraft registry, built by matching tail numbers against FAA records &mdash; it doesn't cover every aircraft that appears in <code>flights</code>. 98.3% of Envoy Air's distinct tail numbers (233 of 237) were never matched into the registry, so its average is based on a small, unrepresentative slice of its real fleet.</div>
         </div>
       </div>
     </div>
@@ -3545,7 +3545,7 @@ margins <span class="kw">AS</span> (
                 <tr><td>EWR</td><td class="num">1,118</td><td class="num">12.31</td><td class="num">200</td><td class="num">372</td></tr>
               </tbody>
             </table>
-            <div class="insight-item"><b class="mark">&#9670;</b>&nbsp;Delta's summer numbers run slightly hotter than its full-year figures from Q1 (LGA 12.43 &rarr; 12.38 is close, but the worst single delay jumps to 898 minutes) &mdash; consistent with the July&ndash;August spike already found in Q3. Caveat: this procedure and Q1 use different delay metrics (<code>COALESCE</code>-to-zero here vs. zeroed-early-departures in Q1), so the 12.43 vs. 12.38 closeness is suggestive, not a precise apples-to-apples match.</div>
+            <div class="insight-item"><b class="mark">&#9670;</b>&nbsp;Delta's Jul&ndash;Sep average delay at LGA (12.38) is nearly identical to its full-year figure from Q1 (12.43) &mdash; but the single worst delay balloons to 898 minutes, so summer's risk shows up in outliers, not the average. Caveat: this procedure and Q1 use different delay metrics (<code>COALESCE</code>-to-zero here vs. zeroed-early-departures in Q1), so the 12.43 vs. 12.38 closeness is suggestive, not a precise apples-to-apples match.</div>
           </div>
 
           <div class="proc-option" id="proc-b6" style="display:none;">
@@ -3569,7 +3569,7 @@ margins <span class="kw">AS</span> (
     <div class="eyebrow">Question 6 &middot; Runtime Benchmark</div>
     <h1 class="page-title">Subquery vs. CTE</h1>
     <div class="breakdown">
-      <p style="color:var(--text-mid);">Which flights ran later than typical <em>for their own route</em>? Answered two ways, benchmarked on the real submission database.</p>
+      <p style="color:var(--text-mid);">Which flights ran later than typical <em>for their own route</em>? Answered two ways, benchmarked on the live database.</p>
       <div class="callout warn" style="margin-top:14px;">
         <strong>Not comparable at full scale:</strong>
         <ul style="margin:8px 0 0; padding-left:20px; line-height:1.6;">
