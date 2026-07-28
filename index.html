@@ -1321,23 +1321,30 @@
 <text x="44" y="86" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">carrier   VARCHAR(5)   PK</text>
 <text x="44" y="108" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">name      VARCHAR(100)</text>
 
-<rect x="390" y="30" width="230" height="190" rx="8" fill="#FFFFFF" stroke="#111827" stroke-width="1.5"/>
-<path d="M 390 38 A 8 8 0 0 1 398 30 L 612 30 A 8 8 0 0 1 620 38 L 620 64 L 390 64 Z" fill="#4F46E5"/>
-<text x="505.0" y="52.0" text-anchor="middle" font-family="JetBrains Mono, monospace" font-weight="700" font-size="14" fill="#FFFFFF">AIRPORTS</text>
-<text x="404" y="86" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">faa       VARCHAR(5)   PK</text>
-<text x="404" y="108" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">name      VARCHAR(100)</text>
-<text x="404" y="130" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">lat / lon   DECIMAL</text>
-<text x="404" y="152" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">alt / tz / dst</text>
-<text x="404" y="174" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">tzone     VARCHAR(50)</text>
+<rect x="270" y="30" width="230" height="190" rx="8" fill="#FFFFFF" stroke="#111827" stroke-width="1.5"/>
+<path d="M 270 38 A 8 8 0 0 1 278 30 L 492 30 A 8 8 0 0 1 500 38 L 500 64 L 270 64 Z" fill="#4F46E5"/>
+<text x="385.0" y="52.0" text-anchor="middle" font-family="JetBrains Mono, monospace" font-weight="700" font-size="14" fill="#FFFFFF">AIRPORTS</text>
+<text x="284" y="86" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">faa       VARCHAR(5)   PK</text>
+<text x="284" y="108" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">name      VARCHAR(100)</text>
+<text x="284" y="130" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">lat / lon   DECIMAL</text>
+<text x="284" y="152" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">alt / tz / dst</text>
+<text x="284" y="174" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">tzone     VARCHAR(50)</text>
 
-<rect x="760" y="30" width="220" height="190" rx="8" fill="#FFFFFF" stroke="#111827" stroke-width="1.5"/>
-<path d="M 760 38 A 8 8 0 0 1 768 30 L 972 30 A 8 8 0 0 1 980 38 L 980 64 L 760 64 Z" fill="#4F46E5"/>
-<text x="870.0" y="52.0" text-anchor="middle" font-family="JetBrains Mono, monospace" font-weight="700" font-size="14" fill="#FFFFFF">PLANES</text>
-<text x="774" y="86" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">tailnum   VARCHAR(10)  PK</text>
-<text x="774" y="108" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">year (manufacture)</text>
-<text x="774" y="130" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">type / manufacturer</text>
-<text x="774" y="152" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">model / engines</text>
-<text x="774" y="174" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">seats / speed</text>
+<rect x="530" y="30" width="190" height="120" rx="8" fill="#FFFFFF" stroke="#111827" stroke-width="1.5"/>
+<path d="M 530 38 A 8 8 0 0 1 538 30 L 712 30 A 8 8 0 0 1 720 38 L 720 64 L 530 64 Z" fill="#4F46E5"/>
+<text x="625.0" y="52.0" text-anchor="middle" font-family="JetBrains Mono, monospace" font-weight="700" font-size="14" fill="#FFFFFF">ROUTES</text>
+<text x="544" y="86" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">origin    VARCHAR(5)  PK/FK</text>
+<text x="544" y="108" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">dest      VARCHAR(5)  PK/FK</text>
+<text x="544" y="130" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">distance  INT</text>
+
+<rect x="750" y="30" width="220" height="190" rx="8" fill="#FFFFFF" stroke="#111827" stroke-width="1.5"/>
+<path d="M 750 38 A 8 8 0 0 1 758 30 L 962 30 A 8 8 0 0 1 970 38 L 970 64 L 750 64 Z" fill="#4F46E5"/>
+<text x="860.0" y="52.0" text-anchor="middle" font-family="JetBrains Mono, monospace" font-weight="700" font-size="14" fill="#FFFFFF">PLANES</text>
+<text x="764" y="86" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">tailnum   VARCHAR(10)  PK</text>
+<text x="764" y="108" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">year (manufacture)</text>
+<text x="764" y="130" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">type / manufacturer</text>
+<text x="764" y="152" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">model / engines</text>
+<text x="764" y="174" font-family="JetBrains Mono, monospace" font-size="11" fill="#374151">seats / speed</text>
 
 <rect x="30" y="300" width="250" height="210" rx="8" fill="#FFFFFF" stroke="#111827" stroke-width="1.5"/>
 <path d="M 30 308 A 8 8 0 0 1 38 300 L 272 300 A 8 8 0 0 1 280 308 L 280 334 L 30 334 Z" fill="#4F46E5"/>
@@ -1370,13 +1377,13 @@
 <rect x="395.1" y="249.0" width="49.8" height="18" fill="#F3F4F8" opacity="0.95"/>
 <text x="420.0" y="264.0" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="600" fill="#4F46E5">origin</text>
 
-<line x1="580" y1="220" x2="580" y2="300" stroke="#4F46E5" stroke-width="1.75"/>
-<line x1="587.0" y1="234.0" x2="573.0" y2="234.0" stroke="#4F46E5" stroke-width="2"/>
+<path d="M 460 220 L 460 260 L 580 260 L 580 300" fill="none" stroke="#4F46E5" stroke-width="1.75"/>
+<line x1="467.0" y1="234.0" x2="453.0" y2="234.0" stroke="#4F46E5" stroke-width="2"/>
 <line x1="580.0" y1="282.0" x2="586.0" y2="298.0" stroke="#4F46E5" stroke-width="2"/>
 <line x1="580.0" y1="282.0" x2="580.0" y2="298.0" stroke="#4F46E5" stroke-width="2"/>
 <line x1="580.0" y1="282.0" x2="574.0" y2="298.0" stroke="#4F46E5" stroke-width="2"/>
-<rect x="561.4" y="249.0" width="37.2" height="18" fill="#F3F4F8" opacity="0.95"/>
-<text x="580.0" y="264.0" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="600" fill="#4F46E5">dest</text>
+<rect x="502" y="251.0" width="36" height="18" fill="#F3F4F8" opacity="0.95"/>
+<text x="520.0" y="264.0" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="600" fill="#4F46E5">dest</text>
 
 <path d="M 140 140 L 140 260 L 430 260 L 430 300" fill="none" stroke="#4F46E5" stroke-width="1.75"/>
 <line x1="147.0" y1="154.0" x2="133.0" y2="154.0" stroke="#4F46E5" stroke-width="2"/>
@@ -1386,21 +1393,21 @@
 <rect x="253.8" y="249.0" width="62.4" height="18" fill="#F3F4F8" opacity="0.95"/>
 <text x="285.0" y="264.0" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="600" fill="#4F46E5">operates</text>
 
-<path d="M 390 180 L 280 180 L 280 300" fill="none" stroke="#4F46E5" stroke-width="1.75"/>
-<line x1="376.0" y1="187.0" x2="376.0" y2="173.0" stroke="#4F46E5" stroke-width="2"/>
+<line x1="280" y1="180" x2="280" y2="300" stroke="#4F46E5" stroke-width="1.75"/>
+<line x1="287.0" y1="194.0" x2="273.0" y2="194.0" stroke="#4F46E5" stroke-width="2"/>
 <line x1="280.0" y1="282.0" x2="286.0" y2="298.0" stroke="#4F46E5" stroke-width="2"/>
 <line x1="280.0" y1="282.0" x2="280.0" y2="298.0" stroke="#4F46E5" stroke-width="2"/>
 <line x1="280.0" y1="282.0" x2="274.0" y2="298.0" stroke="#4F46E5" stroke-width="2"/>
 <rect x="233.1" y="229.0" width="93.9" height="18" fill="#F3F4F8" opacity="0.95"/>
 <text x="280.0" y="244.0" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="600" fill="#4F46E5">hosts station</text>
 
-<path d="M 760 180 L 760 260 L 730 260 L 730 300" fill="none" stroke="#4F46E5" stroke-width="1.75"/>
-<line x1="767.0" y1="194.0" x2="753.0" y2="194.0" stroke="#4F46E5" stroke-width="2"/>
+<path d="M 750 180 L 750 260 L 730 260 L 730 300" fill="none" stroke="#4F46E5" stroke-width="1.75" stroke-dasharray="6 5"/>
+<line x1="757.0" y1="194.0" x2="743.0" y2="194.0" stroke="#4F46E5" stroke-width="2"/>
 <line x1="730.0" y1="282.0" x2="736.0" y2="298.0" stroke="#4F46E5" stroke-width="2"/>
 <line x1="730.0" y1="282.0" x2="730.0" y2="298.0" stroke="#4F46E5" stroke-width="2"/>
 <line x1="730.0" y1="282.0" x2="724.0" y2="298.0" stroke="#4F46E5" stroke-width="2"/>
-<rect x="709.9" y="209.0" width="100.2" height="18" fill="#F3F4F8" opacity="0.95"/>
-<text x="760.0" y="224.0" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="600" fill="#4F46E5">airframe flown</text>
+<rect x="699.9" y="209.0" width="100.2" height="18" fill="#F3F4F8" opacity="0.95"/>
+<text x="750.0" y="224.0" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="600" fill="#4F46E5">airframe flown</text>
 
 <line x1="280" y1="420" x2="390" y2="420" stroke="#4F46E5" stroke-width="1.75" stroke-dasharray="6 5"/>
 <line x1="294.0" y1="413.0" x2="294.0" y2="427.0" stroke="#4F46E5" stroke-width="2"/>
@@ -1409,7 +1416,23 @@
 <line x1="372.0" y1="420.0" x2="388.0" y2="426.0" stroke="#4F46E5" stroke-width="2"/>
 <rect x="297.5" y="409.0" width="75.0" height="18" fill="#F3F4F8" opacity="0.95"/>
 <text x="335.0" y="424.0" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="600" fill="#4F46E5">conditions</text>
-        </svg>
+
+<line x1="500" y1="70" x2="530" y2="70" stroke="#4F46E5" stroke-width="1.75"/>
+<line x1="514.0" y1="63.0" x2="514.0" y2="77.0" stroke="#4F46E5" stroke-width="2"/>
+<line x1="512.0" y1="70.0" x2="528.0" y2="64.0" stroke="#4F46E5" stroke-width="2"/>
+<line x1="512.0" y1="70.0" x2="528.0" y2="70.0" stroke="#4F46E5" stroke-width="2"/>
+<line x1="512.0" y1="70.0" x2="528.0" y2="76.0" stroke="#4F46E5" stroke-width="2"/>
+<text x="515.0" y="55.0" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="600" fill="#4F46E5">origin</text>
+
+<line x1="500" y1="110" x2="530" y2="110" stroke="#4F46E5" stroke-width="1.75"/>
+<line x1="514.0" y1="103.0" x2="514.0" y2="117.0" stroke="#4F46E5" stroke-width="2"/>
+<line x1="512.0" y1="110.0" x2="528.0" y2="104.0" stroke="#4F46E5" stroke-width="2"/>
+<line x1="512.0" y1="110.0" x2="528.0" y2="110.0" stroke="#4F46E5" stroke-width="2"/>
+<line x1="512.0" y1="110.0" x2="528.0" y2="116.0" stroke="#4F46E5" stroke-width="2"/>
+<text x="515.0" y="95.0" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="600" fill="#4F46E5">dest</text>
+        </svg>        <p style="color:var(--text-gray); font-size:0.85rem; margin-top:8px;">
+          <code>timezones</code> exists in the live database (visible in the reverse-engineered diagram below) but is deliberately left off this ERD &mdash; with zero foreign keys anywhere, it has no relationships to diagram, so it isn't really part of the relational schema.
+        </p>
       </div>
       <details class="section" open>
         <summary><span class="tri">&#9654;</span> Supplement &mdash; MySQL Workbench Reverse-Engineered EER</summary>
@@ -2901,7 +2924,46 @@
       </details>
 
       <details class="section" open>
-        <summary><span class="tri">&#9654;</span> Referential Integrity &mdash; Verified</summary>
+        <summary><span class="tri">&#9654;</span> Normalization &mdash; 1NF, 2NF, 3NF Assessment</summary>
+        <div class="content">
+          <table class="results">
+            <thead><tr><th>Normal Form</th><th>Status</th><th>Basis</th></tr></thead>
+            <tbody>
+              <tr><td>1NF</td><td>Yes</td><td>Every column holds a single atomic value &mdash; no repeating groups or multi-valued fields.</td></tr>
+              <tr><td>2NF</td><td>Yes</td><td>Every table uses a single-column primary key, so partial dependency on part of a composite key can't occur.</td></tr>
+              <tr><td>3NF</td><td>Partial &mdash; 3 violations found</td><td>Some non-key columns depend on another non-key column instead of depending directly on the primary key.</td></tr>
+            </tbody>
+          </table>
+          <div class="section-title" style="margin-top:18px;">The Three 3NF Violations</div>
+          <table class="results">
+            <thead><tr><th>Table</th><th>Dependency Chain</th><th>Why It's a Violation</th><th>Resolution</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code>flights</code></td>
+                <td><code>flight_id &rarr; (origin,dest) &rarr; distance</code></td>
+                <td><code>distance</code> depends on the route, not the individual flight &mdash; every flight between the same two airports has the same value.</td>
+                <td>Extracted to <code>routes</code></td>
+              </tr>
+              <tr>
+                <td><code>airports</code></td>
+                <td><code>faa &rarr; tzone &rarr; (tz,dst)</code></td>
+                <td><code>tz</code>/<code>dst</code> depend on the timezone, not the airport &mdash; every airport sharing a <code>tzone</code> has the same values.</td>
+                <td>Extracted to <code>timezones</code></td>
+              </tr>
+              <tr>
+                <td><code>flights</code></td>
+                <td><code>flight_id &rarr; sched_dep_time &rarr; (hour,minute)</code></td>
+                <td><code>hour</code>/<code>minute</code> are arithmetically derivable from <code>sched_dep_time</code> (<code>hour = sched_dep_time / 100</code>, <code>minute = sched_dep_time % 100</code>) &mdash; storing them separately is redundant.</td>
+                <td>Left as-is &mdash; not a real-world reference entity, kept for query convenience</td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="color:var(--text-mid); font-size:0.9rem; margin-top:14px;">Two of these three violations &mdash; the route/distance dependency and the timezone/tz-dst dependency &mdash; are resolved in the ERD supplement above through the optional <code>routes</code> and <code>timezones</code> extraction tables.</p>
+        </div>
+      </details>
+
+      <details class="section">
+        <summary><span class="tri">&#9654;</span> Referential Integrity &mdash; Verified <span style="color:var(--text-gray); font-weight:400;">(click to see)</span></summary>
         <div class="content">
           <table class="results">
             <thead><tr><th>Relationship</th><th>Enforced</th><th>Evidence</th></tr></thead>
@@ -2958,45 +3020,6 @@
               <div class="cap">MySQL Workbench &mdash; check 6.4, 1,556 flights with no matching weather observation</div>
             </div>
           </div>
-        </div>
-      </details>
-
-      <details class="section" open>
-        <summary><span class="tri">&#9654;</span> Normalization &mdash; 1NF, 2NF, 3NF Assessment</summary>
-        <div class="content">
-          <table class="results">
-            <thead><tr><th>Normal Form</th><th>Status</th><th>Basis</th></tr></thead>
-            <tbody>
-              <tr><td>1NF</td><td>Yes</td><td>Every column holds a single atomic value &mdash; no repeating groups or multi-valued fields.</td></tr>
-              <tr><td>2NF</td><td>Yes</td><td>Every table uses a single-column primary key, so partial dependency on part of a composite key can't occur.</td></tr>
-              <tr><td>3NF</td><td>Partial &mdash; 3 violations found</td><td>Some non-key columns depend on another non-key column instead of depending directly on the primary key.</td></tr>
-            </tbody>
-          </table>
-          <div class="section-title" style="margin-top:18px;">The Three 3NF Violations</div>
-          <table class="results">
-            <thead><tr><th>Table</th><th>Dependency Chain</th><th>Why It's a Violation</th><th>Resolution</th></tr></thead>
-            <tbody>
-              <tr>
-                <td><code>flights</code></td>
-                <td><code>flight_id &rarr; (origin,dest) &rarr; distance</code></td>
-                <td><code>distance</code> depends on the route, not the individual flight &mdash; every flight between the same two airports has the same value.</td>
-                <td>Extracted to <code>routes</code></td>
-              </tr>
-              <tr>
-                <td><code>airports</code></td>
-                <td><code>faa &rarr; tzone &rarr; (tz,dst)</code></td>
-                <td><code>tz</code>/<code>dst</code> depend on the timezone, not the airport &mdash; every airport sharing a <code>tzone</code> has the same values.</td>
-                <td>Extracted to <code>timezones</code></td>
-              </tr>
-              <tr>
-                <td><code>flights</code></td>
-                <td><code>flight_id &rarr; sched_dep_time &rarr; (hour,minute)</code></td>
-                <td><code>hour</code>/<code>minute</code> are arithmetically derivable from <code>sched_dep_time</code> (<code>hour = sched_dep_time / 100</code>, <code>minute = sched_dep_time % 100</code>) &mdash; storing them separately is redundant.</td>
-                <td>Left as-is &mdash; not a real-world reference entity, kept for query convenience</td>
-              </tr>
-            </tbody>
-          </table>
-          <p style="color:var(--text-mid); font-size:0.9rem; margin-top:14px;">Two of these three violations &mdash; the route/distance dependency and the timezone/tz-dst dependency &mdash; are resolved in the ERD supplement above through the optional <code>routes</code> and <code>timezones</code> extraction tables.</p>
         </div>
       </details>
     </div>
