@@ -1469,7 +1469,7 @@
           <div class="callout" style="margin-top:12px; background:var(--gold-bg); border:1px solid var(--gold-border); color:var(--gold);">
             <strong>About <code>routes</code> and <code>timezones</code>:</strong>
             <ul style="margin:8px 0 0; padding-left:20px; line-height:1.6;">
-              <li>These two tables aren't a separate issue &mdash; they're the fix for two of the 3NF violations documented in the normalization analysis below.</li>
+              <li>These two tables aren't a separate issue &mdash; they're the extraction step for two of the 3NF violations documented in the normalization analysis below. The redundant columns they were extracted from are still kept in <code>flights</code> and <code>airports</code>, so the schema remains deliberately, honestly non-3NF &mdash; see the note below the violations table.</li>
               <li>Both come from an optional extra step in the build script &mdash; not part of the core 5-table schema.</li>
               <li><code>timezones</code> has an enforced FK from <code>airports.tzone</code>.</li>
               <li><code>routes</code> has an enforced FK from <code>flights.(origin,dest)</code>, in addition to its own FKs to <code>airports</code> &mdash; the diagram above shows the direct <code>flights</code>&ndash;<code>routes</code> connection.</li>
@@ -1491,19 +1491,19 @@
           </table>
           <div class="section-title" style="margin-top:18px;">The Three 3NF Violations</div>
           <table class="results">
-            <thead><tr><th>Table</th><th>Dependency Chain</th><th>Why It's a Violation</th><th>Demonstrated Fix</th></tr></thead>
+            <thead><tr><th>Table</th><th>Dependency Chain</th><th>Why It's a Violation</th><th>Extraction Demonstrated</th></tr></thead>
             <tbody>
               <tr>
                 <td><code>flights</code></td>
                 <td><code>flight_id &rarr; (origin,dest) &rarr; distance</code></td>
                 <td><code>distance</code> depends on the route, not the individual flight &mdash; every flight between the same two airports has the same value.</td>
-                <td><code>routes</code> table, with real enforced FKs back to <code>airports</code>, and a real enforced FK from <code>flights.(origin,dest) &rarr; routes.(origin,dest)</code></td>
+                <td><code>routes</code> table extracted, with real enforced FKs back to <code>airports</code> and from <code>flights.(origin,dest)</code> &mdash; but <code>flights.distance</code> itself is still kept (see note below), so the violation isn't fully resolved.</td>
               </tr>
               <tr>
                 <td><code>airports</code></td>
                 <td><code>faa &rarr; tzone &rarr; (tz,dst)</code></td>
                 <td><code>tz</code>/<code>dst</code> depend on the timezone, not the airport &mdash; every airport sharing a <code>tzone</code> has the same values.</td>
-                <td><code>timezones</code> table, with a real enforced FK back to <code>airports</code> (<code>airports.tzone &rarr; timezones.tzone</code>)</td>
+                <td><code>timezones</code> table extracted, with a real enforced FK back to <code>airports</code> (<code>airports.tzone &rarr; timezones.tzone</code>) &mdash; but <code>airports.tz</code>/<code>dst</code> are still kept (see note below), so the violation isn't fully resolved.</td>
               </tr>
               <tr>
                 <td><code>flights</code></td>
