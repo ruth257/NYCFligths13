@@ -1309,7 +1309,7 @@
     <div class="breakdown">
       <div class="bk-top"><span class="qid">Source: Rdatasets / nycflights13</span><span class="qid">336,776 rows</span></div>
       <p style="color:var(--text-mid); margin-bottom:20px;">
-        nycflights13 &mdash; five related tables covering every flight departing New York City's three airports (EWR, JFK, LGA) in 2013, sourced from the US Bureau of Transportation Statistics (BTS) and packaged as an R dataset. The schema satisfies 1NF and 2NF, but not fully 3NF &mdash; three real transitive dependencies exist.
+        nycflights13 &mdash; five related tables covering every flight departing New York City's three airports (EWR, JFK, LGA) in 2013, sourced from the US Bureau of Transportation Statistics (BTS) and packaged as an R dataset. Four of the five tables come from BTS; <code>planes</code> comes from a different source, the FAA Aircraft Registry, and was merged in separately by matching tail numbers. The schema satisfies 1NF and 2NF, but not fully 3NF &mdash; three real transitive dependencies exist.
       </p>
       <div class="erd-svg-wrap">
         <svg viewBox="0 0 1010 650" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:auto; display:block; font-size:11px;">
@@ -1675,7 +1675,7 @@
         <div class="content">
           <div class="insight-item"><b class="mark">&#9670;</b>&nbsp;ExpressJet at EWR and Endeavor at JFK top the delay ranking on small regional aircraft &mdash; a genuine gate-turnover signal, not a capacity story.</div>
           <div class="insight-item"><b class="mark">&#9670;</b>&nbsp;Since the Q4 aging-fleet test already rules out aircraft age as a meaningful driver of delay (effects under 2 minutes either direction), the gap seen here more plausibly comes from carrier-specific scheduling padding, hub congestion, or regional-carrier turnaround practices &mdash; an open question this data can't settle on its own.</div>
-          <div class="callout warn"><strong>Data quality issue found in source files:</strong> The <code>planes</code> table is a separate aircraft registry, built by matching tail numbers against FAA records &mdash; it doesn't cover every aircraft that appears in <code>flights</code>. 98.3% of Envoy Air's distinct tail numbers (233 of 237) were never matched into the registry, so its average is based on a small, unrepresentative slice of its real fleet.</div>
+          <div class="callout warn"><strong>Data quality issue found in source files:</strong> The <code>planes</code> table comes from a different source than <code>flights</code> &mdash; the FAA Aircraft Registry, merged in by matching tail numbers &mdash; so it doesn't cover every aircraft that appears in <code>flights</code>. The <code>nycflights13</code> package documentation names the reason for two carriers specifically: American Airlines (AA) and Envoy Air (MQ) report fleet numbers instead of tail numbers, so their aircraft can't be matched. 98.3% of Envoy Air's distinct tail numbers (233 of 237) were never matched into the registry, so its average is based on a small, unrepresentative slice of its real fleet.</div>
         </div>
       </div>
     </div>
