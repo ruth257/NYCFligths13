@@ -1436,6 +1436,14 @@
 <line x1="512.0" y1="110.0" x2="528.0" y2="116.0" stroke="#4F46E5" stroke-width="2"/>
 <text x="515.0" y="95.0" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="600" fill="#4F46E5">dest</text>
 
+<line x1="660" y1="150" x2="660" y2="300" stroke="#4F46E5" stroke-width="1.75"/>
+<line x1="667.0" y1="164.0" x2="653.0" y2="164.0" stroke="#4F46E5" stroke-width="2"/>
+<line x1="660.0" y1="282.0" x2="666.0" y2="298.0" stroke="#4F46E5" stroke-width="2"/>
+<line x1="660.0" y1="282.0" x2="660.0" y2="298.0" stroke="#4F46E5" stroke-width="2"/>
+<line x1="660.0" y1="282.0" x2="654.0" y2="298.0" stroke="#4F46E5" stroke-width="2"/>
+<rect x="640.0" y="182.0" width="40.0" height="18" fill="#F3F4F8" opacity="0.95"/>
+<text x="660.0" y="195.0" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="600" fill="#4F46E5">route</text>
+
 <path d="M 480 220 L 480 280 L 850 280 L 850 300" fill="none" stroke="#4F46E5" stroke-width="1.75"/>
 <line x1="487.0" y1="234.0" x2="473.0" y2="234.0" stroke="#4F46E5" stroke-width="2"/>
 <line x1="850.0" y1="282.0" x2="856.0" y2="298.0" stroke="#4F46E5" stroke-width="2"/>
@@ -1445,7 +1453,7 @@
 <text x="650.0" y="284.0" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5" font-weight="600" fill="#4F46E5">tzone</text>
         </svg>        <ul style="color:var(--text-gray); font-size:0.85rem; margin:8px 0 0; padding-left:20px; line-height:1.6;">
           <li><code>timezones</code> and <code>routes</code> come from an optional extra step in the build script (see the normalization section below) &mdash; they're not part of the core 5-table schema.</li>
-          <li><code>airports.tzone</code> has an enforced foreign key to <code>timezones.tzone</code>.</li>
+          <li><code>airports.tzone</code> has an enforced foreign key to <code>timezones.tzone</code>, and <code>flights.(origin,dest)</code> has an enforced foreign key to <code>routes.(origin,dest)</code>.</li>
           <li><code>planes</code> has no foreign key, but the relationship is real: 284,170 of 336,776 flights (84.4%) match a real aircraft by <code>tailnum</code>. This join is used in Q1's average seat counts, Q2's route-capacity analysis, and Q4's aging-fleet subquery.</li>
           <li>The unmatched flights aren't random: 2,512 have no <code>tailnum</code> at all, and 50,094 have a <code>tailnum</code> the FAA registry doesn't recognize. Most of this comes from two carriers with incomplete registry data (Envoy Air: 3.8% matched; American: 31.1% matched).</li>
           <li><code>weather</code> has a smaller gap: 1,556 flights have no matching record. Both <code>planes</code> and <code>weather</code> use <code>LEFT JOIN</code>, so unmatched rows show <code>NULL</code> instead of being dropped.</li>
@@ -2974,12 +2982,12 @@
             <div class="cap">Database &rarr; Reverse Engineer, generated directly from the live schema &mdash; <strong>click to zoom</strong></div>
           </div>
           <div class="callout" style="margin-top:12px; background:var(--gold-bg); border:1px solid var(--gold-border); color:var(--gold);">
-            <strong>Why <code>routes</code> and <code>timezones</code> sit apart:</strong>
+            <strong>About <code>routes</code> and <code>timezones</code>:</strong>
             <ul style="margin:8px 0 0; padding-left:20px; line-height:1.6;">
               <li>These two tables aren't a separate issue &mdash; they're the fix for two of the 3NF violations documented in the normalization analysis below.</li>
               <li>Both come from an optional extra step in the build script &mdash; not part of the core 5-table schema.</li>
-              <li><code>timezones</code> has an enforced FK from <code>airports.tzone</code>, so it's genuinely connected, as the diagram above shows.</li>
-              <li><code>routes</code> links to <code>airports</code>, but nothing links back to <code>routes</code> &mdash; so it sits at the edge instead of the center.</li>
+              <li><code>timezones</code> has an enforced FK from <code>airports.tzone</code>.</li>
+              <li><code>routes</code> has an enforced FK from <code>flights.(origin,dest)</code>, in addition to its own FKs to <code>airports</code>. The diagram above was captured before this FK was added, so it doesn't show that connection yet.</li>
             </ul>
           </div>
         </div>
@@ -3004,7 +3012,7 @@
                 <td><code>flights</code></td>
                 <td><code>flight_id &rarr; (origin,dest) &rarr; distance</code></td>
                 <td><code>distance</code> depends on the route, not the individual flight &mdash; every flight between the same two airports has the same value.</td>
-                <td><code>routes</code> table, with real enforced FKs back to <code>airports</code></td>
+                <td><code>routes</code> table, with real enforced FKs back to <code>airports</code>, and a real enforced FK from <code>flights.(origin,dest) &rarr; routes.(origin,dest)</code></td>
               </tr>
               <tr>
                 <td><code>airports</code></td>
@@ -3020,7 +3028,7 @@
               </tr>
             </tbody>
           </table>
-          <p style="color:var(--text-mid); font-size:0.9rem; margin-top:14px;"><code>routes</code> has a foreign key to <code>airports</code>, and <code>airports.tzone</code> has one to <code>timezones.tzone</code>. The redundant columns (<code>flights.distance</code>, <code>airports.tz</code>, <code>airports.dst</code>) are still kept, though: dropping them would finish the normalization, but the build script leaves them in on purpose, since they're convenient for direct queries.</p>
+          <p style="color:var(--text-mid); font-size:0.9rem; margin-top:14px;"><code>routes</code> has foreign keys to <code>airports</code> and is itself referenced by <code>flights.(origin,dest)</code>, and <code>airports.tzone</code> has a foreign key to <code>timezones.tzone</code>. The redundant columns (<code>flights.distance</code>, <code>airports.tz</code>, <code>airports.dst</code>) are still kept, though: dropping them would finish the normalization, but the build script leaves them in on purpose, since they're convenient for direct queries.</p>
         </div>
       </details>
 
